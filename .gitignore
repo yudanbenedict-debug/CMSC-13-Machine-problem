@@ -1,0 +1,23 @@
+# Compiled class file
+*.class
+
+# Log File
+*.log
+
+# BlueJ File
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.temp/
+
+# Package files #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+
+# Specific large files to ignore
+Installer/Jar/*.jar
+Installer/Windows/*.exe
