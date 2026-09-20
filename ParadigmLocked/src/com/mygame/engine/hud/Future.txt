@@ -1,0 +1,5 @@
+This part should contain each aspect of the HUD
+Question
+Answer
+Choices
+I'll think of how the structure should be since we're making our input handling dynamic
