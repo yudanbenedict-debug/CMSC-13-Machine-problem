@@ -21,3 +21,4 @@
 # Specific large files to ignore
 Installer/Jar/*.jar
 Installer/Windows/*.exe
+.github/agents/paradigm-locked-main.agent.md
