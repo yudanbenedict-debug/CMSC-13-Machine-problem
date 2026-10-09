@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class FileLoader {
     //assume we create a csv/txt file for each questions.
-    private Map<Difficulty, List<Questions>> ques = new EnumMap<>(Difficulty.class);
+    private Map<Difficulty, List<Questions>> QUES = new EnumMap<>(Difficulty.class);
     //probably so it's easier to group them by "difficulty"; not finalized
     public FileLoader(){
 
@@ -32,12 +32,12 @@ public class FileLoader {
             int nm = Integer.parseInt(lst[6]);
             //hard coded, will change later to Difficulty itself.
             if(nm == 1){
-                ques.computeIfAbsent(Difficulty.EASY, k -> new ArrayList<>()).add(q);
+                QUES.computeIfAbsent(Difficulty.EASY, k -> new ArrayList<>()).add(q);
             }else if(nm == 2){
-                ques.computeIfAbsent(Difficulty.MEDIUM, k -> new ArrayList<>()).add(q);
+                QUES.computeIfAbsent(Difficulty.MEDIUM, k -> new ArrayList<>()).add(q);
             }
             else if(nm == 3){
-                ques.computeIfAbsent(Difficulty.HARD, k -> new ArrayList<>()).add(q);
+                QUES.computeIfAbsent(Difficulty.HARD, k -> new ArrayList<>()).add(q);
             }
         }
         read.close();
