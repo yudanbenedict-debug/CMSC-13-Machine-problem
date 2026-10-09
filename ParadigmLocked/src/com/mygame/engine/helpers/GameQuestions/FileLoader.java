@@ -4,29 +4,31 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 
-import java.util.Map;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.EnumMap;
+import java.util.ArrayList;
 import java.util.List;
 
 
 public class FileLoader {
     //TODO: AFTER COMPILING EVERYTHING, REMNOVE SETTINGS.JSON AND TRANSFER THE JAR DEPENDECY TO ITS PROPER PLACE.
     //assume we create a csv/txt file for each questions.
-    private Map<Difficulty, List<Questions>> QUES = new EnumMap<>(Difficulty.class);
+    public List<Questions> QUES = new ArrayList<>();
     //probably so it's easier to group them by "difficulty"; not finalized
     public FileLoader(){
-
+        init_programming_ques();
+        init_theoretical_ques();
+       
     }
     /*
         //NOTE: DON'T MIND THAT THERE ARE 2 METHODS, I'M TESTING SMTHNG.
     */
-    public void init_theoretical_ques() throws Exception{
+   //TODO: COMPLETE THE INSERTION TO THE MAP
+    private void init_theoretical_ques(){
 
         Path ph = Paths.get("theoretical_questions.csv");
         //implement the shit later.
@@ -46,14 +48,14 @@ public class FileLoader {
                     String op_D = record.get("option_D");
                     String ans = record.get("answer");
                     Questions q = new Questions(id, category, module, ques_type, label, ques, op_A, op_B, op_C, op_D, ans);
-                    //for now 
+                    QUES.add(q);
                 }
         }catch(IOException e){
             //show system err
             System.err.println("Unable to read file path");
         }
     }
-    public void init_programming_ques() throws IOException{
+    private void init_programming_ques(){
         Path ph = Paths.get("programming_questions.csv");
         try(BufferedReader br = Files.newBufferedReader(ph, StandardCharsets.UTF_8); 
             CSVParser cw = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).get().parse(br)){
@@ -72,10 +74,13 @@ public class FileLoader {
                     String op_D = record.get("option_D");
                     String ans = record.get("answer");
                     Questions q = new Questions(id, category, module, ques_type, label, ques, op_A, op_B, op_C, op_D, ans);
-                    
+                    QUES.add(q);
                 }
             }catch(IOException e){
                 e.getLocalizedMessage();
             }
+    }
+    public List<Questions> getQues(){
+        return QUES;
     }
 }
