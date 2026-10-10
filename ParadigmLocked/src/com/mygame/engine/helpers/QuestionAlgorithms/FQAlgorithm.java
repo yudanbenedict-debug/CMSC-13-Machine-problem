@@ -31,7 +31,7 @@ public class FQAlgorithm<K, V> {
         }
 
     }
-
+    //returns the selected key needed.
     public K selectNextKey(){
         NavigableMap<Double, K> rouletteWheel = new TreeMap<>();
         //Starting weight for every key.
