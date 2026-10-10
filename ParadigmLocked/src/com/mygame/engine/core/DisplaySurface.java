@@ -1,6 +1,6 @@
 package com.mygame.engine.core;
 
-import com.mygame.engine.helpers.GameConstants;
+import com.mygame.engine.helpers.GameQuestions.GameConstants;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;

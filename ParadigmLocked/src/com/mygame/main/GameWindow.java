@@ -3,7 +3,7 @@ package com.mygame.main;
 import com.mygame.engine.core.DisplaySurface;
 import com.mygame.engine.core.GameStateManager;
 import com.mygame.engine.core.ObjectManager;
-import com.mygame.engine.helpers.GameConstants;
+import com.mygame.engine.helpers.GameQuestions.GameConstants;
 import java.awt.Dimension;
 import java.awt.GraphicsDevice;
 import java.awt.Rectangle;

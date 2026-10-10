@@ -2,7 +2,7 @@ package com.mygame.ui;
 
 import com.mygame.engine.core.GameStateManager;
 import com.mygame.engine.core.StateMethods;
-import com.mygame.engine.helpers.GameConstants;
+import com.mygame.engine.helpers.GameQuestions.GameConstants;
 import com.mygame.engine.hud.Button;
 import java.awt.Color;
 import java.awt.Font;
