@@ -1,16 +1,17 @@
 package com.mygame.ui;
 
+import com.mygame.engine.core.AssetCache;
 import com.mygame.engine.core.GameState;
 import com.mygame.engine.core.GameStateManager;
 import com.mygame.engine.core.StateMethods;
-import com.mygame.engine.helpers.GameQuestions.GameConstants;
+import com.mygame.engine.helpers.constants.GameConstants;
 import com.mygame.engine.hud.Button;
-import java.awt.Color;
-import java.awt.Font;
+import com.mygame.engine.hud.TemporaryUiRenderer;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 
 public class MainMenuState implements StateMethods {
     private final GameStateManager stateManager;
@@ -21,30 +22,43 @@ public class MainMenuState implements StateMethods {
 
     public MainMenuState(GameStateManager stateManager) {
         this.stateManager = stateManager;
-        int x = 100;
-        int width = 330;
-        int height = 64;
-        startButton = new Button(x, 320, width, height, "START GAME", "UI_MENU_STARTGAME", () -> stateManager.setState(GameState.PLAYING));
-        howToPlayButton = new Button(x, 400, width, height, "HOW TO PLAY", "UI_MENU_HOWTOPLAY", () -> stateManager.setState(GameState.HOWTOPLAY));
-        creditsButton = new Button(x, 480, width, height, "CREDITS", "UI_MENU_CREDITS", () -> stateManager.setState(GameState.CREDITS));
-        quitButton = new Button(x, 560, width, height, "QUIT", "UI_MENU_QUIT", () -> System.exit(0));
+        AssetCache.load("UI_MAIN_MENU_BACKGROUND", "images/mainmenu/MAIN_MENU_STATIC.png");
+        AssetCache.load("UI_MAIN_MENU_LOGO", "images/mainmenu/MAIN_MENU_LOGO_STATIC.png");
+        AssetCache.load("UI_MENU_FANCY_BORDER", "images/buttons/FANCY_BORDER.png");
+        int x = GameConstants.TEMPORARY_MENU_BUTTON_X;
+        int width = GameConstants.TEMPORARY_MENU_BUTTON_WIDTH;
+        int height = GameConstants.TEMPORARY_MENU_BUTTON_HEIGHT;
+        int startY = GameConstants.TEMPORARY_MENU_BUTTON_START_Y;
+        int spacing = GameConstants.TEMPORARY_MENU_BUTTON_SPACING;
+        startButton = new Button(x, startY, width, height, "START GAME", "UI_MENU_FANCY_BORDER", () -> stateManager.setState(GameState.PLAYING));
+        howToPlayButton = new Button(x, startY + spacing, width, height, "HOW TO PLAY", "UI_MENU_FANCY_BORDER", () -> stateManager.setState(GameState.HOWTOPLAY));
+        creditsButton = new Button(x, startY + spacing * 2, width, height, "CREDITS", "UI_MENU_FANCY_BORDER", () -> stateManager.setState(GameState.CREDITS));
+        quitButton = new Button(x, startY + spacing * 3, width, height, "QUIT", "UI_MENU_FANCY_BORDER", () -> System.exit(0));
     }
 
     @Override
     public void draw(Graphics2D g) {
-        g.setColor(new Color(12, 19, 28));
-        g.fillRect(0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT);
-        g.setColor(new Color(28, 63, 78));
-        g.fillRect(0, 0, GameConstants.LOGICAL_WIDTH, 18);
-        g.setColor(new Color(228, 241, 235));
-        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 54));
-        g.drawString("BREAK THE PARADIGMLOCK.", 100, 150);
-        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 25));
-        g.setColor(new Color(154, 201, 193));
-        g.drawString("ASCEND, PROGRAMMER!", 104, 195);
-        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 18));
-        g.setColor(new Color(146, 160, 171));
-        g.drawString("F11  Fullscreen", 100, 675);
+        BufferedImage background = AssetCache.get("UI_MAIN_MENU_BACKGROUND");
+        if (background != null) {
+            g.drawImage(background, 0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT, null);
+        } else {
+            TemporaryUiRenderer.drawScreenBackground(g);
+        }
+        BufferedImage logo = AssetCache.get("UI_MAIN_MENU_LOGO");
+        if (logo != null) {
+            g.drawImage(logo, GameConstants.TEMPORARY_MENU_LOGO_X,
+                    GameConstants.TEMPORARY_MENU_LOGO_Y,
+                    GameConstants.TEMPORARY_MENU_LOGO_WIDTH,
+                    GameConstants.TEMPORARY_MENU_LOGO_HEIGHT, null);
+        }
+        // if (logo == null) {
+        //     g.setColor(new Color(228, 241, 235));
+        //     g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 54));
+        //     g.drawString("BREAK THE PARADIGMLOCK.", 100, 150);
+        //     g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 25));
+        //     g.setColor(new Color(154, 201, 193));
+        //     g.drawString("ASCEND, PROGRAMMER!", 104, 195);
+        // }
         startButton.draw(g);
         howToPlayButton.draw(g);
         creditsButton.draw(g);

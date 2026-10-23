@@ -1,22 +1,19 @@
 package com.mygame.engine.core;
 
-import com.mygame.engine.helpers.GameQuestions.GameConstants;
+import com.mygame.engine.helpers.constants.GameConstants;
+import com.mygame.inputs.InputHandler;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import javax.swing.JPanel;
 
-public class DisplaySurface extends JPanel implements MouseListener, MouseMotionListener, KeyListener {
+public class DisplaySurface extends JPanel {
     private final GameStateManager stateManager;
     private final ObjectManager objectManager;
-    private final Runnable toggleFullscreen;
+    private final InputHandler inputHandler;
     private double scale = 1.0;
     private int offsetX;
     private int offsetY;
@@ -24,16 +21,21 @@ public class DisplaySurface extends JPanel implements MouseListener, MouseMotion
     public DisplaySurface(GameStateManager stateManager, ObjectManager objectManager, Runnable toggleFullscreen) {
         this.stateManager = stateManager;
         this.objectManager = objectManager;
-        this.toggleFullscreen = toggleFullscreen;
         setFocusable(true);
-        addMouseListener(this);
-        addMouseMotionListener(this);
-        addKeyListener(this);
+        inputHandler = new InputHandler(this, stateManager, this::toLogicalEvent, toggleFullscreen);
         setBackground(Color.BLACK);
     }
 
     public void updateGame(double deltaTime) {
         stateManager.update(deltaTime);
+        repaint();
+    }
+
+    // fix for bleeding when refreshing fullscreen
+    // this is called by a listener in gamewindow so it remains active the entire time negligble performance effect
+    public void refreshViewport() {
+        calculateViewport();
+        revalidate();
         repaint();
     }
 
@@ -72,20 +74,4 @@ public class DisplaySurface extends JPanel implements MouseListener, MouseMotion
                 point.x, point.y, event.getClickCount(), event.isPopupTrigger(), event.getButton());
     }
 
-    @Override public void mousePressed(MouseEvent event) { stateManager.mousePressed(toLogicalEvent(event)); }
-    @Override public void mouseReleased(MouseEvent event) { stateManager.mouseReleased(toLogicalEvent(event)); }
-    @Override public void mouseMoved(MouseEvent event) { stateManager.mouseMoved(toLogicalEvent(event)); }
-    @Override public void mouseDragged(MouseEvent event) { stateManager.mouseMoved(toLogicalEvent(event)); }
-    @Override public void keyPressed(KeyEvent event) {
-        if (event.getKeyCode() == KeyEvent.VK_F11) {
-            toggleFullscreen.run();
-        } else {
-            stateManager.keyPressed(event);
-        }
-    }
-    @Override public void keyReleased(KeyEvent event) { stateManager.keyReleased(event); }
-    @Override public void keyTyped(KeyEvent event) { }
-    @Override public void mouseClicked(MouseEvent event) { }
-    @Override public void mouseEntered(MouseEvent event) { requestFocusInWindow(); }
-    @Override public void mouseExited(MouseEvent event) { }
 }

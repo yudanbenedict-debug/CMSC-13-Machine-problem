@@ -2,8 +2,9 @@ package com.mygame.ui;
 
 import com.mygame.engine.core.GameStateManager;
 import com.mygame.engine.core.StateMethods;
-import com.mygame.engine.helpers.GameQuestions.GameConstants;
+import com.mygame.engine.helpers.constants.GameConstants;
 import com.mygame.engine.hud.Button;
+import com.mygame.engine.hud.TemporaryUiRenderer;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -20,13 +21,16 @@ public abstract class InfoState implements StateMethods {
         this.stateManager = stateManager;
         this.title = title;
         this.lines = lines;
-        backButton = new Button(100, 590, 250, 64, "BACK TO MENU", null, () -> stateManager.setState(com.mygame.engine.core.GameState.MENU));
+        backButton = new Button(GameConstants.TEMPORARY_INFO_BUTTON_X,
+            GameConstants.TEMPORARY_INFO_BUTTON_Y,
+            GameConstants.TEMPORARY_INFO_BUTTON_WIDTH,
+            GameConstants.TEMPORARY_INFO_BUTTON_HEIGHT,
+            "BACK TO MENU", null, () -> stateManager.setState(com.mygame.engine.core.GameState.MENU));
     }
 
     @Override
     public void draw(Graphics2D g) {
-        g.setColor(new Color(12, 19, 28));
-        g.fillRect(0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT);
+        TemporaryUiRenderer.drawScreenBackground(g);
         g.setColor(new Color(228, 241, 235));
         g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 48));
         g.drawString(title, 100, 120);
