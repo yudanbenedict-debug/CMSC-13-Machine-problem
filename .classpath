@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+    <classpathentry kind="src" path="ParadigmLocked/src"/>
+    <classpathentry kind="lib" path="ParadigmLocked/lib/commons-csv-1.14.1.jar"/>
+    <classpathentry kind="lib" path="ParadigmLocked/lib/commons-io-2.20.0.jar"/>
+    <classpathentry kind="lib" path="ParadigmLocked/lib/commons-codec-1.19.0.jar"/>
+    <classpathentry kind="output" path="ParadigmLocked/bin"/>
+</classpath>

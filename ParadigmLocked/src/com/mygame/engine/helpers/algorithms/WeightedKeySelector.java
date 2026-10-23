@@ -1,4 +1,4 @@
-package com.mygame.engine.helpers.QuestionAlgorithms;
+package com.mygame.engine.helpers.algorithms;
 
 import java.util.HashMap;
 import java.util.List;
@@ -14,15 +14,16 @@ import java.util.TreeMap;
     https://stackoverflow.com/questions/17250568/randomly-choosing-from-a-list-with-weighted-probabilities
 
     TLDR: basically a randomization algorithm that is based on frequency.
+     Changed it to weighted key selector cus its not a question algorithm, this can be reused for other stuff
 */
-public class FQAlgorithm<K, V> {
+public class WeightedKeySelector<K, V> {
     //copy of the original map, will be used in questionselector.
     private final Map<K, List<V>> originalMap;
     //tracks the count per key.
     private final Map<K, Integer> usedCounts;
     private final Random rand = new Random();
 
-    public FQAlgorithm(Map<K, List<V>> map){
+    public WeightedKeySelector(Map<K, List<V>> map){
         this.originalMap = map;
         this.usedCounts = new HashMap<>();
 

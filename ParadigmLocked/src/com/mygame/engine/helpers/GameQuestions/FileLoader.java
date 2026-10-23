@@ -1,4 +1,4 @@
-package com.mygame.engine.helpers.GameQuestions;
+package com.mygame.engine.helpers.gamequestions;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -13,74 +13,57 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/*
+    Changes:
+    fixed the import and addded the missing libraries, also added a vscode settings.json to read where the libraries are
+    Gincentralize ko an naming conventions, stick to it stop using single letters holy code smell
+    pretty much the same changes han imo part, kind of just cleaned it up, an imo duha nga test method waray ko la ginlabot
+    gonna start working on my shi
+    "The loader keeps the pair's CSV record mapping,
+    but centralizes file loading and path resolution so both question sets use the same code."
+ */
 public class FileLoader {
-    //TODO: AFTER COMPILING EVERYTHING, REMNOVE SETTINGS.JSON AND TRANSFER THE JAR DEPENDECY TO ITS PROPER PLACE.
-    //assume we create a csv/txt file for each questions.
-    public List<Questions> QUES = new ArrayList<>();
-    //probably so it's easier to group them by "difficulty"; not finalized
-    public FileLoader(){
-        init_programming_ques();
-        init_theoretical_ques();
-       
-    }
-    /*
-        //NOTE: DON'T MIND THAT THERE ARE 2 METHODS, I'M TESTING SMTHNG.
-    */
-   //TODO: COMPLETE THE INSERTION TO THE MAP
-    private void init_theoretical_ques(){
+    private final List<Question> questions = new ArrayList<>();
 
-        Path ph = Paths.get("theoretical_questions.csv");
-        //implement the shit later.
-        try(BufferedReader r = Files.newBufferedReader(ph, StandardCharsets.UTF_8);
-            CSVParser pr = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).get().parse(r)){
-            //using CSV
-                for(CSVRecord record : pr){
-                    String id = record.get("id");
-                    String category = record.get("category");
-                    String module = record.get("module_or_language");
-                    String ques_type = record.get("question_type");
-                    String label = record.get("label");
-                    String ques = record.get("question");
-                    String op_A = record.get("option_A");
-                    String op_B = record.get("option_B"); 
-                    String op_C = record.get("option_C");
-                    String op_D = record.get("option_D");
-                    String ans = record.get("answer");
-                    Questions q = new Questions(id, category, module, ques_type, label, ques, op_A, op_B, op_C, op_D, ans);
-                    QUES.add(q);
-                }
-        }catch(IOException e){
-            //show system err
-            System.err.println("Unable to read file path");
+    public FileLoader() {
+        loadQuestions("programming_questions.csv");
+        loadQuestions("theoretical_questions.csv");
+    }
+
+    private void loadQuestions(String fileName) {
+        Path filePath = resolveFile(fileName);
+        try (BufferedReader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
+             CSVParser parser = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).get().parse(reader)){
+            for (CSVRecord record : parser) {
+                questions.add(new Question(
+                        record.get("id"),
+                        record.get("category"),
+                        record.get("module_or_language"),
+                        record.get("question_type"),
+                        record.get("label"),
+                        record.get("question"),
+                        record.get("option_A"),
+                        record.get("option_B"),
+                        record.get("option_C"),
+                        record.get("option_D"),
+                        record.get("answer")));
+            }
+        } catch (IOException | IllegalArgumentException exception){
+            throw new IllegalStateException("Unable to load question file: " + filePath, exception);
         }
     }
-    private void init_programming_ques(){
-        Path ph = Paths.get("programming_questions.csv");
-        try(BufferedReader br = Files.newBufferedReader(ph, StandardCharsets.UTF_8); 
-            CSVParser cw = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).get().parse(br)){
 
-                for(CSVRecord record : cw){
-                    String id = record.get("id");
-                    String category = record.get("category");
-                    String module = record.get("module_or_language");
-                    String ques_type = record.get("question_type");
-                    String label = record.get("label");
-                    String ques = record.get("question");
+    private Path resolveFile(String fileName) {
+        List<Path> candidates = List.of(
+                Paths.get("assets", "MCQ", fileName),
+                Paths.get("ParadigmLocked", "assets", "MCQ", fileName),
+                Paths.get("..", "assets", "MCQ", fileName),
+                Paths.get("..", "ParadigmLocked", "assets", "MCQ", fileName));
 
-                    String op_A = record.get("option_A");
-                    String op_B = record.get("option_B"); 
-                    String op_C = record.get("option_C");
-                    String op_D = record.get("option_D");
-                    String ans = record.get("answer");
-                    Questions q = new Questions(id, category, module, ques_type, label, ques, op_A, op_B, op_C, op_D, ans);
-                    QUES.add(q);
-                }
-            }catch(IOException e){
-                e.getLocalizedMessage();
-            }
+        return candidates.stream().filter(Files::isRegularFile).findFirst().orElseThrow(() -> new IllegalStateException("Question file not found: " + fileName));
     }
-    public List<Questions> getQues(){
-        return QUES;
+
+    public List<Question> getQuestions() {
+        return List.copyOf(questions);
     }
 }
