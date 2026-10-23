@@ -23,6 +23,7 @@ public class GameplayPreviewState implements StateMethods {
     private final TemporaryRadialMenu radialMenu;
     private final Button menuButton;
     private final ChoiceButton[] choiceButtons;
+    private final ChoiceButton[] abandonChoiceButtons;
     private Question currentQuestion;
     private int selectedChoiceIndex = -1;
     private boolean answerLocked;
@@ -40,7 +41,7 @@ public class GameplayPreviewState implements StateMethods {
             GameConstants.TEMPORARY_GAMEPLAY_MENU_Y,
             GameConstants.TEMPORARY_GAMEPLAY_MENU_WIDTH,
             GameConstants.TEMPORARY_GAMEPLAY_MENU_HEIGHT, "MENU", null,
-            () -> stateManager.setState(GameState.MENU));
+            () -> stateManager.setState(GameState.MENU), false);
         choiceButtons = new ChoiceButton[] {
             createChoiceButton("A", GameConstants.TEMPORARY_GAMEPLAY_CHOICE_LEFT_X,
                 GameConstants.TEMPORARY_GAMEPLAY_CHOICE_TOP_Y, 0),
@@ -50,6 +51,18 @@ public class GameplayPreviewState implements StateMethods {
                 GameConstants.TEMPORARY_GAMEPLAY_CHOICE_BOTTOM_Y, 2),
             createChoiceButton("D", GameConstants.TEMPORARY_GAMEPLAY_CHOICE_RIGHT_X,
                 GameConstants.TEMPORARY_GAMEPLAY_CHOICE_BOTTOM_Y, 3)
+        };
+        abandonChoiceButtons = new ChoiceButton[] {
+            new ChoiceButton(GameConstants.TEMPORARY_ABANDON_CHOICE_LEFT_X,
+                GameConstants.TEMPORARY_ABANDON_CHOICE_Y,
+                GameConstants.TEMPORARY_ABANDON_CHOICE_WIDTH,
+                GameConstants.TEMPORARY_ABANDON_CHOICE_HEIGHT,
+                "YES", "", this::confirmAbandonQuestion),
+            new ChoiceButton(GameConstants.TEMPORARY_ABANDON_CHOICE_RIGHT_X,
+                GameConstants.TEMPORARY_ABANDON_CHOICE_Y,
+                GameConstants.TEMPORARY_ABANDON_CHOICE_WIDTH,
+                GameConstants.TEMPORARY_ABANDON_CHOICE_HEIGHT,
+                "NO", "", this::cancelAbandonQuestion)
         };
     }
 
@@ -61,15 +74,18 @@ public class GameplayPreviewState implements StateMethods {
         } else {
             TemporaryUiRenderer.drawScreenBackground(g);
         }
-        TemporaryUiRenderer.drawGameplayTopPanel(g);
         if (currentQuestion == null) {
             TemporaryUiRenderer.drawGameplayQuestion(g, "No questions available.", "", "", "", "");
         } else {
             TemporaryUiRenderer.drawGameplayQuestion(g, currentQuestion.question, "", "", "", "");
         }
         if (activeOption == TemporaryRadialMenu.Option.ANSWER) {
-            TemporaryUiRenderer.drawGameplayChoicesPanel(g);
             for (ChoiceButton choiceButton : choiceButtons) {
+                choiceButton.draw(g);
+            }
+        } else if (activeOption == TemporaryRadialMenu.Option.ABANDON) {
+            TemporaryUiRenderer.drawOptionState(g, activeOption.label(), activeOption.description());
+            for (ChoiceButton choiceButton : abandonChoiceButtons) {
                 choiceButton.draw(g);
             }
         } else if (activeOption != null) {
@@ -116,6 +132,16 @@ public class GameplayPreviewState implements StateMethods {
         }
     }
 
+    private void confirmAbandonQuestion() {
+        loadNextQuestion();
+        radialMenu.clearSelection();
+        activeOption = TemporaryRadialMenu.Option.ANSWER;
+    }
+
+    private void cancelAbandonQuestion() {
+        radialMenu.clearSelection();
+    }
+
     private ChoiceButton createChoiceButton(String label, int x, int y, int index) {
         String text = getChoiceText(index);
         return new ChoiceButton(x, y, GameConstants.TEMPORARY_GAMEPLAY_CHOICE_WIDTH,
@@ -152,6 +178,10 @@ public class GameplayPreviewState implements StateMethods {
             for (ChoiceButton choiceButton : choiceButtons) {
                 choiceButton.updateHover(point);
             }
+        } else if (activeOption == TemporaryRadialMenu.Option.ABANDON) {
+            for (ChoiceButton choiceButton : abandonChoiceButtons) {
+                choiceButton.updateHover(point);
+            }
         }
     }
 
@@ -164,6 +194,14 @@ public class GameplayPreviewState implements StateMethods {
         }
         if (activeOption == TemporaryRadialMenu.Option.ANSWER) {
             for (ChoiceButton choiceButton : choiceButtons) {
+                if (pressed) {
+                    choiceButton.press(point);
+                } else {
+                    choiceButton.release(point);
+                }
+            }
+        } else if (activeOption == TemporaryRadialMenu.Option.ABANDON) {
+            for (ChoiceButton choiceButton : abandonChoiceButtons) {
                 if (pressed) {
                     choiceButton.press(point);
                 } else {

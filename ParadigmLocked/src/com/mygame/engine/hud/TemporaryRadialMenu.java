@@ -1,8 +1,8 @@
 package com.mygame.engine.hud;
 
 import com.mygame.engine.core.AssetCache;
-import com.mygame.engine.helpers.EasingMethods;
-import com.mygame.engine.helpers.TransformMethods;
+import com.mygame.engine.helpers.algorithms.EasingMethods;
+import com.mygame.engine.helpers.algorithms.TransformMethods;
 import com.mygame.engine.helpers.constants.GameConstants;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 public class TemporaryRadialMenu {
     public enum Option {
         ANSWER(70, new Color(0x7FB05A), "FANCY_BORDER_ANSWER", "Answer"),
-        CONTACT_HELP(49, new Color(0xC8B560), "FANCY_BORDER_CONTACT_HELP", "Contact Declarative\nDynamo"),
+        CONTACT_HELP(49, new Color(0xC8B560), "FANCY_BORDER_CONTACT_HELP", "Contact\nDeclarative Dynamo"),
         ABANDON(28, new Color(0xD05A5A), "FANCY_BORDER_ABANDON_QUESTION", "Abandon Question"),
         CONSUMABLE(7, new Color(0x6A8CC8), "FANCY_BORDER_CONSUMABLE", "Consumable");
 
@@ -63,6 +63,8 @@ public class TemporaryRadialMenu {
     private int hovered = -1;
     private int active = -1;
     private double arrowAngle = IDLE_ANGLE;
+    private double arrowTarget = IDLE_ANGLE;
+    private double arrowDelayRemaining;
     private double wedge;
     private Consumer<Option> selectionListener;
 
@@ -81,11 +83,25 @@ public class TemporaryRadialMenu {
         return active < 0 ? null : options[active];
     }
 
+    public void clearSelection() {
+        active = -1;
+        if (selectionListener != null) {
+            selectionListener.accept(null);
+        }
+    }
+
     public void update(double deltaTime) {
         int focused = focusIndex();
         double targetArrow = focused >= 0 ? options[focused].angle : IDLE_ANGLE;
-        arrowAngle = EasingMethods.approachAngle(arrowAngle, targetArrow, 14, deltaTime,
-            GameConstants.TEMPORARY_RADIAL_ARROW_DELAY);
+        if (Double.compare(targetArrow, arrowTarget) != 0) {
+            arrowTarget = targetArrow;
+            arrowDelayRemaining = GameConstants.TEMPORARY_RADIAL_ARROW_DELAY;
+        }
+        if (arrowDelayRemaining > 0) {
+            arrowDelayRemaining = Math.max(0, arrowDelayRemaining - Math.max(0, deltaTime));
+        } else {
+            arrowAngle = EasingMethods.approachAngle(arrowAngle, targetArrow, 14, deltaTime);
+        }
         wedge = EasingMethods.approach(wedge, focused >= 0 ? 1 : 0, 12, deltaTime);
 
         for (int index = 0; index < options.length; index++) {
@@ -212,17 +228,22 @@ public class TemporaryRadialMenu {
                     GameConstants.TEMPORARY_RADIAL_LABEL_WIDTH,
                     GameConstants.TEMPORARY_RADIAL_LABEL_HEIGHT, 14, 14);
         }
-        graphics.setFont(UiFontManager.dorris(option == Option.CONTACT_HELP ? 10 :
-            option == Option.ABANDON ? 15 : 18, Font.BOLD));
-        FontMetrics metrics = graphics.getFontMetrics();
         graphics.setColor(Color.WHITE);
-        String[] labelLines = option.label.split("\\n");
-        int lineHeight = metrics.getHeight();
-        for (int line = 0; line < labelLines.length; line++) {
-            graphics.drawString(labelLines[line], -metrics.stringWidth(labelLines[line]) / 2f,
-                    (line - (labelLines.length - 1) / 2f) * lineHeight
-                            + (metrics.getAscent() - metrics.getDescent()) / 2f);
+        if (option == Option.CONTACT_HELP) {
+            drawCenteredLabel(graphics, "Contact", UiFontManager.dorris(10, Font.BOLD), -10);
+            drawCenteredLabel(graphics, "Declarative Dynamo", UiFontManager.dorris(16, Font.BOLD), 11);
+        } else {
+            graphics.setFont(UiFontManager.dorris(option == Option.ABANDON ? 15 : 18, Font.BOLD));
+            FontMetrics metrics = graphics.getFontMetrics();
+            float baseline = (metrics.getAscent() - metrics.getDescent()) / 2f;
+            graphics.drawString(option.label, -metrics.stringWidth(option.label) / 2f, baseline);
         }
         graphics.setTransform(oldTransform);
+    }
+
+    private void drawCenteredLabel(Graphics2D graphics, String text, Font font, float baseline) {
+        graphics.setFont(font);
+        FontMetrics metrics = graphics.getFontMetrics();
+        graphics.drawString(text, -metrics.stringWidth(text) / 2f, baseline);
     }
 }

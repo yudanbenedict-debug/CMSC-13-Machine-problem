@@ -34,6 +34,11 @@ public final class GameConstants {
     public static final int TEMPORARY_GAMEPLAY_CHOICE_TOP_Y = 485;
     public static final int TEMPORARY_GAMEPLAY_CHOICE_BOTTOM_Y = 575;
     public static final int TEMPORARY_GAMEPLAY_CHOICE_TEXT_WIDTH = 285;
+    public static final int TEMPORARY_ABANDON_CHOICE_WIDTH = 190;
+    public static final int TEMPORARY_ABANDON_CHOICE_HEIGHT = 55;
+    public static final int TEMPORARY_ABANDON_CHOICE_LEFT_X = 590;
+    public static final int TEMPORARY_ABANDON_CHOICE_RIGHT_X = 850;
+    public static final int TEMPORARY_ABANDON_CHOICE_Y = 610;
     public static final int TEMPORARY_GAMEPLAY_QUESTION_TEXT_X = 435;
     public static final int TEMPORARY_GAMEPLAY_QUESTION_TEXT_Y = 180;
     public static final int TEMPORARY_GAMEPLAY_QUESTION_TEXT_WIDTH = 760;
@@ -57,7 +62,7 @@ public final class GameConstants {
     // Dial size and the inner edge of ring
     public static final int TEMPORARY_RADIAL_DIAL_RADIUS = 130;
     // Weighted arrow delay for beautification
-    public static final double TEMPORARY_RADIAL_ARROW_DELAY = 10;
+    public static final double TEMPORARY_RADIAL_ARROW_DELAY = 0.145;
     // Radial Options distance.
     public static final int TEMPORARY_RADIAL_ITEM_RADIUS = 260;
     // Border Unscaled startin dimensions
