@@ -1,8 +1,5 @@
 {
-    "java.project.sourcePaths": [
-        "ParadigmLocked/src"
-    ],
     "java.project.referencedLibraries": [
-        "ParadigmLocked/lib/*.jar"
+      "**/com/lib/*.jar"
     ]
-}
+  }

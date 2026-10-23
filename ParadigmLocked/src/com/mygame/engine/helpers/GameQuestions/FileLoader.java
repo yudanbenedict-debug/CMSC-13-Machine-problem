@@ -65,8 +65,7 @@ public class FileLoader {
         throw new IOException("Could not find " + path + " on the classpath or relative to "
                 + Paths.get("").toAbsolutePath());
     }
-
-    public List<Question> getQuestions() {
-        return List.copyOf(questions);
+    public List<Questions> getQues(){
+        return List.copyOf(QUES);
     }
 }
