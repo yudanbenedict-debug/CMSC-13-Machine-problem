@@ -63,6 +63,6 @@ public class FileLoader {
                 + Paths.get("").toAbsolutePath());
     }
     public List<Questions> getQues(){
-        return QUES;
+        return List.copyOf(QUES);
     }
 }
