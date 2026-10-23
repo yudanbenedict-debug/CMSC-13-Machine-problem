@@ -1,4 +1,4 @@
-package com.mygame.engine.helpers.GameQuestions;
+package com.mygame.engine.helpers.gamequestions;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -16,7 +16,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/*
+    Changes:
+    fixed the import and addded the missing libraries, also added a vscode settings.json to read where the libraries are
+ */
 public class FileLoader {
         //TODO: AFTER COMPILING EVERYTHING, REMNOVE SETTINGS.JSON AND TRANSFER THE JAR DEPENDECY TO ITS PROPER PLACE.
         //assume we create a csv/txt file for each questions.
@@ -62,7 +65,8 @@ public class FileLoader {
         throw new IOException("Could not find " + path + " on the classpath or relative to "
                 + Paths.get("").toAbsolutePath());
     }
-    public List<Questions> getQues(){
-        return QUES;
+
+    public List<Question> getQuestions() {
+        return List.copyOf(questions);
     }
 }

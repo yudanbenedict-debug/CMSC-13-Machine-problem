@@ -28,26 +28,16 @@ public class Button {
         BufferedImage image = assetKey == null ? null : AssetCache.get(assetKey);
         if (image != null) {
             g.drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height, null);
+            g.setColor(Color.WHITE);
+            g.setFont(UiFontManager.dorris(22, Font.BOLD));
+            int textWidth = g.getFontMetrics().stringWidth(label);
+            int textY = bounds.y + (bounds.height - g.getFontMetrics().getHeight()) / 2
+                    + g.getFontMetrics().getAscent();
+            g.drawString(label, bounds.x + (bounds.width - textWidth) / 2, textY);
             return;
         }
 
-        Color fill = !enabled
-                ? new Color(70, 70, 78)
-                : pressed
-                ? new Color(120, 178, 176)
-                : hovered
-                ? new Color(76, 126, 151)
-                : new Color(36, 48, 62);
-        g.setColor(fill);
-        g.fillRoundRect(bounds.x, bounds.y, bounds.width, bounds.height, 12, 12);
-        g.setColor(hovered && enabled ? new Color(178, 236, 224) : new Color(120, 144, 156));
-        g.drawRoundRect(bounds.x, bounds.y, bounds.width, bounds.height, 12, 12);
-        g.setColor(enabled ? Color.WHITE : new Color(160, 160, 160));
-        g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 22));
-        int textWidth = g.getFontMetrics().stringWidth(label);
-        int textX = bounds.x + (bounds.width - textWidth) / 2;
-        int textY = bounds.y + (bounds.height - g.getFontMetrics().getHeight()) / 2 + g.getFontMetrics().getAscent();
-        g.drawString(label, textX, textY);
+        TemporaryUiRenderer.drawButton(g, bounds, label, hovered, pressed, enabled);
     }
 
     public void updateHover(Point logicalPoint) {
