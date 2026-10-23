@@ -6,6 +6,9 @@ import org.apache.commons.csv.CSVRecord;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,51 +19,51 @@ import java.util.List;
 /*
     Changes:
     fixed the import and addded the missing libraries, also added a vscode settings.json to read where the libraries are
-    Gincentralize ko an naming conventions, stick to it stop using single letters holy code smell
-    pretty much the same changes han imo part, kind of just cleaned it up, an imo duha nga test method waray ko la ginlabot
-    gonna start working on my shi
-    "The loader keeps the pair's CSV record mapping,
-    but centralizes file loading and path resolution so both question sets use the same code."
  */
 public class FileLoader {
-    private final List<Question> questions = new ArrayList<>();
+        //TODO: AFTER COMPILING EVERYTHING, REMNOVE SETTINGS.JSON AND TRANSFER THE JAR DEPENDECY TO ITS PROPER PLACE.
+        //assume we create a csv/txt file for each questions.
+        public List<Questions> QUES = new ArrayList<>();
+        private static final String[] SEARCH_DIRS = {
+            ".",
+            "CMSC-13-Machine-problem",
+            "..",
+            "../.."
+        };
+    
+        //probably so it's easier to group them by "difficulty"; not finalized
+    public void init_ques(String filePath){
+        
+        //gets the entire String, top to bottom, skipping the header of a CSV
+        CSVFormat format = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).get();
 
-    public FileLoader() {
-        loadQuestions("programming_questions.csv");
-        loadQuestions("theoretical_questions.csv");
-    }
-
-    private void loadQuestions(String fileName) {
-        Path filePath = resolveFile(fileName);
-        try (BufferedReader reader = Files.newBufferedReader(filePath, StandardCharsets.UTF_8);
-             CSVParser parser = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).get().parse(reader)){
-            for (CSVRecord record : parser) {
-                questions.add(new Question(
-                        record.get("id"),
-                        record.get("category"),
-                        record.get("module_or_language"),
-                        record.get("question_type"),
-                        record.get("label"),
-                        record.get("question"),
-                        record.get("option_A"),
-                        record.get("option_B"),
-                        record.get("option_C"),
-                        record.get("option_D"),
-                        record.get("answer")));
+        try(Reader read = openReader(filePath); CSVParser parser = format.parse(read)){
+            int count = 0;
+            for(CSVRecord r: parser){
+                QUES.add(new Questions(r.get("id"), r.get("catgeory"), r.get("module_or_language"), r.get("question_type"), r.get("label"), r.get("question"), r.get("option_A"), r.get("option_B"), r.get("option_C"), r.get("option_D"), r.get("answer")));
+                count++;
             }
-        } catch (IOException | IllegalArgumentException exception){
-            throw new IllegalStateException("Unable to load question file: " + filePath, exception);
         }
-    }
-
-    private Path resolveFile(String fileName) {
-        List<Path> candidates = List.of(
-                Paths.get("assets", "MCQ", fileName),
-                Paths.get("ParadigmLocked", "assets", "MCQ", fileName),
-                Paths.get("..", "assets", "MCQ", fileName),
-                Paths.get("..", "ParadigmLocked", "assets", "MCQ", fileName));
-
-        return candidates.stream().filter(Files::isRegularFile).findFirst().orElseThrow(() -> new IllegalStateException("Question file not found: " + fileName));
+        catch(IOException | IllegalArgumentException e){
+            System.err.println("[FileLoader] FAILED to load " + filePath + ": " + e);
+            e.printStackTrace();
+        }
+        }
+        
+    
+    private Reader openReader(String path) throws IOException{
+        InputStream in = FileLoader.class.getResourceAsStream("/" + path);
+        if (in != null) {
+            return new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
+        }
+        for (String dir : SEARCH_DIRS) {
+            Path p = Paths.get(dir, path);
+            if (Files.exists(p)) {
+                return Files.newBufferedReader(p, StandardCharsets.UTF_8);
+            }
+        }
+        throw new IOException("Could not find " + path + " on the classpath or relative to "
+                + Paths.get("").toAbsolutePath());
     }
 
     public List<Question> getQuestions() {
