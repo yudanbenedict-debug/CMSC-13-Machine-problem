@@ -30,7 +30,7 @@ public class QuestionSelector {
         Return the next unused question selected by weighted category
         Return NULL if all categories have been used
     */
-    public Question getNextQuestion() {
+    public Question getNextQuestion(){
         return getQuestionByCategory();
     }
 

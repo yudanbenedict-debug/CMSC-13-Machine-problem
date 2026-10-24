@@ -16,42 +16,65 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-/*
-    Changes:
-    fixed the import and addded the missing libraries, also added a vscode settings.json to read where the libraries are
- */
 public class FileLoader {
-        //TODO: AFTER COMPILING EVERYTHING, REMNOVE SETTINGS.JSON AND TRANSFER THE JAR DEPENDECY TO ITS PROPER PLACE.
-        //assume we create a csv/txt file for each questions.
-        public List<Questions> QUES = new ArrayList<>();
-        private static final String[] SEARCH_DIRS = {
-            ".",
-            "CMSC-13-Machine-problem",
-            "..",
-            "../.."
-        };
-    
-        //probably so it's easier to group them by "difficulty"; not finalized
-    public void init_ques(String filePath){
-        
-        //gets the entire String, top to bottom, skipping the header of a CSV
-        CSVFormat format = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).get();
 
-        try(Reader read = openReader(filePath); CSVParser parser = format.parse(read)){
+    // CSVs live in ParadigmLocked/assets/MCQ/
+    private static final String[] CSV_FILES = {
+        "assets/MCQ/programming_questions.csv",
+        "assets/MCQ/theoretical_questions.csv"
+    };
+
+    // Folders to look in, so it works no matter which folder the game is launched from.
+    private static final String[] SEARCH_DIRS = {
+        ".",
+        "ParadigmLocked",
+        "CMSC-13-Machine-problem/ParadigmLocked",
+        "..",
+        "../ParadigmLocked"
+    };
+
+    public List<Question> QUES = new ArrayList<>();
+
+    public FileLoader() {
+        // FIX 1: the constructor must actually load the files.
+        for (String file : CSV_FILES) {
+            init_ques(file);
+        }
+        System.out.println("[FileLoader] Loaded " + QUES.size() + " questions total.");
+    }
+
+    public void init_ques(String filePath) {
+        CSVFormat format = CSVFormat.DEFAULT.builder()
+                .setHeader()
+                .setSkipHeaderRecord(true)
+                .get();
+
+        try (Reader read = openReader(filePath);
+             CSVParser parser = format.parse(read)) {
             int count = 0;
-            for(CSVRecord r: parser){
-                QUES.add(new Questions(r.get("id"), r.get("catgeory"), r.get("module_or_language"), r.get("question_type"), r.get("label"), r.get("question"), r.get("option_A"), r.get("option_B"), r.get("option_C"), r.get("option_D"), r.get("answer")));
+            for (CSVRecord r : parser) {
+                QUES.add(new Question(
+                        r.get("id"),
+                        r.get("category"),            // FIX 2: was "catgeory" (typo)
+                        r.get("module_or_language"),
+                        r.get("question_type"),
+                        r.get("label"),
+                        r.get("question"),
+                        r.get("option_A"),
+                        r.get("option_B"),
+                        r.get("option_C"),
+                        r.get("option_D"),
+                        r.get("answer")));
                 count++;
             }
-        }
-        catch(IOException | IllegalArgumentException e){
+            System.out.println("[FileLoader] " + filePath + ": " + count + " questions");
+        } catch (IOException | IllegalArgumentException e) {
             System.err.println("[FileLoader] FAILED to load " + filePath + ": " + e);
             e.printStackTrace();
         }
-        }
-        
-    
-    private Reader openReader(String path) throws IOException{
+    }
+
+    private Reader openReader(String path) throws IOException {
         InputStream in = FileLoader.class.getResourceAsStream("/" + path);
         if (in != null) {
             return new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
@@ -67,6 +90,6 @@ public class FileLoader {
     }
 
     public List<Question> getQuestions() {
-        return List.copyOf(questions);
+        return List.copyOf(QUES);
     }
 }
