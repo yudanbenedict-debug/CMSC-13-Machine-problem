@@ -18,7 +18,7 @@ import java.util.Set;
 
 public class QuestionSelector {
     // Select a question by weighted category or question type. (removed old randomize by category)
-    private final QuestionType questionType = new QuestionType();
+    private final QuestionBank questionType = new QuestionBank();
 
     private final WeightedKeySelector<String, Question> keySelectorForCategory = new WeightedKeySelector<>(questionType.getQuestionsByCategory());
     private final WeightedKeySelector<String, Question> keySelectorForType = new WeightedKeySelector<>(questionType.getQuestionsByType());
@@ -30,7 +30,7 @@ public class QuestionSelector {
         Return the next unused question selected by weighted category
         Return NULL if all categories have been used
     */
-    public Question getNextQuestion() {
+    public Question getNextQuestion(){
         return getQuestionByCategory();
     }
 
