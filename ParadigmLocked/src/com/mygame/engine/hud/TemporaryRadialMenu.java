@@ -35,7 +35,6 @@ public class TemporaryRadialMenu {
             this.color = color;
             this.assetKey = "UI_RADIAL_" + assetName;
             this.label = label;
-            AssetCache.load(assetKey, "images/buttons/" + assetName + ".png");
         }
 
         public String label() {
@@ -69,7 +68,6 @@ public class TemporaryRadialMenu {
     private Consumer<Option> selectionListener;
 
     public TemporaryRadialMenu() {
-        AssetCache.load("UI_RADIAL_FANCY_BORDER", "images/buttons/FANCY_BORDER.png");
         for (int index = 0; index < options.length; index++) {
             scales[index] = 1.0;
         }

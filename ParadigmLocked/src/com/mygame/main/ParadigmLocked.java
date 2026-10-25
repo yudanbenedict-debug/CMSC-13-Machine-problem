@@ -7,7 +7,9 @@ import com.mygame.engine.core.ObjectManager;
 import com.mygame.ui.CreditsState;
 import com.mygame.ui.GameplayPreviewState;
 import com.mygame.ui.HowToPlayState;
+import com.mygame.ui.LoadingState;
 import com.mygame.ui.MainMenuState;
+import com.mygame.ui.PauseState;
 import javax.swing.SwingUtilities;
 
 public final class ParadigmLocked {
@@ -16,14 +18,18 @@ public final class ParadigmLocked {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            GameStateManager stateManager = new GameStateManager(GameState.MENU);
+            GameStateManager stateManager = new GameStateManager(GameState.LOADING);
             ObjectManager objectManager = new ObjectManager();
             GameWindow window = new GameWindow(stateManager, objectManager);
 
-            stateManager.register(GameState.MENU, new MainMenuState(stateManager));
-            stateManager.register(GameState.PLAYING, new GameplayPreviewState(stateManager));
-            stateManager.register(GameState.HOWTOPLAY, new HowToPlayState(stateManager));
-            stateManager.register(GameState.CREDITS, new CreditsState(stateManager));
+            stateManager.register(GameState.LOADING, new LoadingState(() -> {
+                stateManager.register(GameState.MENU, new MainMenuState(stateManager));
+                stateManager.register(GameState.PLAYING, new GameplayPreviewState(stateManager));
+                stateManager.register(GameState.PAUSED, new PauseState(stateManager));
+                stateManager.register(GameState.HOWTOPLAY, new HowToPlayState(stateManager));
+                stateManager.register(GameState.CREDITS, new CreditsState(stateManager));
+                stateManager.setState(GameState.MENU);
+            }));
 
             window.setVisible(true);
             window.getSurface().requestFocusInWindow();

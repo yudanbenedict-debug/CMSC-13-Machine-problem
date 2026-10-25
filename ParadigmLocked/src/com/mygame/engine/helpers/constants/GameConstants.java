@@ -3,6 +3,36 @@ package com.mygame.engine.helpers.constants;
 public final class GameConstants {
     public static final int LOGICAL_WIDTH = 1280;
     public static final int LOGICAL_HEIGHT = 720;
+    public static final int DEFAULT_WINDOW_WIDTH = 1190;
+    public static final int DEFAULT_WINDOW_HEIGHT = 700;
+    public static final double LOADING_SCREEN_MINIMUM_SECONDS = 5.0;
+    public static final int LOADING_SCREEN_BAR_INSET = 100;
+    public static final int LOADING_SCREEN_BAR_Y = 650;
+    public static final int LOADING_SCREEN_BAR_HEIGHT = 6;
+    public static final int OVERLAY_MENU_X = 250;
+    public static final int OVERLAY_MENU_Y = 65;
+    public static final int OVERLAY_MENU_WIDTH = 780;
+    public static final int OVERLAY_MENU_HEIGHT = 590;
+    //first content size
+    public static final int OVERLAY_MENU_CONTENT_X = 400;
+    public static final int OVERLAY_MENU_CONTENT_TOP = 205;
+    public static final int OVERLAY_MENU_CONTENT_BOTTOM = 555;
+    public static final int OVERLAY_MENU_SCROLLBAR_RIGHT_INSET = 15;
+    public static final int OVERLAY_MENU_SCROLLBAR_WIDTH = 6;
+    public static final int OVERLAY_MENU_BACK_Y = 585;
+    public static final int OVERLAY_MENU_BACK_WIDTH = 260;
+    public static final int OVERLAY_MENU_BACK_HEIGHT = 45;
+    //pause menu context
+    //title font size = game paused
+    //pause volume = png bar
+    public static final int PAUSE_TITLE_FONT_SIZE = 90;
+    public static final int PAUSE_OPTION_START_Y = 300;
+    public static final int PAUSE_OPTION_SPACING = 70;
+    public static final int PAUSE_VOLUME_X = 540;
+    public static final int PAUSE_VOLUME_Y = 550;
+    public static final int PAUSE_VOLUME_WIDTH = 200;
+    public static final int PAUSE_VOLUME_HEIGHT = 80;
+    public static final int PAUSE_VOLUME_ICON_WIDTH = 10;
 
     public static final int TEMPORARY_MENU_BUTTON_X = 100;
     public static final int TEMPORARY_MENU_BUTTON_WIDTH = 330;
@@ -10,7 +40,7 @@ public final class GameConstants {
     public static final int TEMPORARY_MENU_BUTTON_START_Y = 320;
     public static final int TEMPORARY_MENU_BUTTON_SPACING = 80;
 
-    public static final int TEMPORARY_INFO_BUTTON_X = 100;
+    public static final int TEMPORARY_INFO_BUTTON_X = 90;
     public static final int TEMPORARY_INFO_BUTTON_Y = 590;
     public static final int TEMPORARY_INFO_BUTTON_WIDTH = 250;
     public static final int TEMPORARY_INFO_BUTTON_HEIGHT = 64;
@@ -68,10 +98,10 @@ public final class GameConstants {
     // Border Unscaled startin dimensions
     public static final int TEMPORARY_RADIAL_LABEL_WIDTH = 230;
     public static final int TEMPORARY_RADIAL_LABEL_HEIGHT = 44;
-    public static final int TEMPORARY_MENU_LOGO_X = 700;
+    public static final int TEMPORARY_MENU_LOGO_X = (LOGICAL_WIDTH - 620) / 2;
     public static final int TEMPORARY_MENU_LOGO_Y = 45;
-    public static final int TEMPORARY_MENU_LOGO_WIDTH = 560;
-    public static final int TEMPORARY_MENU_LOGO_HEIGHT = 112;
+    public static final int TEMPORARY_MENU_LOGO_WIDTH = 620;
+    public static final int TEMPORARY_MENU_LOGO_HEIGHT = 124;
 
     private GameConstants() {
     }

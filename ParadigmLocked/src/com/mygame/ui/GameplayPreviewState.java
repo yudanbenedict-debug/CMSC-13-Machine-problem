@@ -31,7 +31,6 @@ public class GameplayPreviewState implements StateMethods {
 
     public GameplayPreviewState(GameStateManager stateManager) {
         this.stateManager = stateManager;
-        AssetCache.load("UI_MAIN_GAME_BACKGROUND", "images/backgrounds/MAIN_GAME_BACKGROUND_STATIC.png");
         questionSelector = new QuestionSelector();
         currentQuestion = questionSelector.getNextQuestion();
         radialMenu = new TemporaryRadialMenu();
@@ -101,7 +100,11 @@ public class GameplayPreviewState implements StateMethods {
     @Override public void mousePressed(MouseEvent event) { updateButtons(event.getPoint(), true); }
     @Override public void mouseReleased(MouseEvent event) { updateButtons(event.getPoint(), false); }
     @Override public void mouseMoved(MouseEvent event) { updateHover(event.getPoint()); }
-    @Override public void keyPressed(KeyEvent event) { }
+    @Override public void keyPressed(KeyEvent event) {
+        if (event.getKeyCode() == KeyEvent.VK_ESCAPE || event.getKeyCode() == KeyEvent.VK_P) {
+            stateManager.setState(GameState.PAUSED);
+        }
+    }
     @Override public void keyReleased(KeyEvent event) { }
 
     private void loadNextQuestion() {

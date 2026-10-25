@@ -3,6 +3,7 @@ package com.mygame.engine.core;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 
 /*
  * Interface for state-specific behavior (menu, playing, paused, etc.).
@@ -19,6 +20,7 @@ public interface StateMethods {
     void mousePressed(MouseEvent e);
     void mouseReleased(MouseEvent e);
     void mouseMoved(MouseEvent e);
+    default void mouseWheelMoved(MouseWheelEvent e) { }
     void keyPressed(KeyEvent e);
     void keyReleased(KeyEvent e);
 }
