@@ -1,4 +1,4 @@
-package com.mygame.engine.helpers;
+package com.mygame.engine.helpers.algorithms;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;

@@ -13,15 +13,22 @@ public class Button {
     private final String label;
     private final String assetKey;
     private final Runnable action;
+    private final boolean backgroundVisible;
     private boolean hovered;
     private boolean pressed;
     private boolean enabled = true;
 
     public Button(int x, int y, int width, int height, String label, String assetKey, Runnable action) {
+        this(x, y, width, height, label, assetKey, action, true);
+    }
+
+    public Button(int x, int y, int width, int height, String label, String assetKey,
+                  Runnable action, boolean backgroundVisible) {
         this.bounds = new Rectangle(x, y, width, height);
         this.label = label;
         this.assetKey = assetKey;
         this.action = action;
+        this.backgroundVisible = backgroundVisible;
     }
 
     public void draw(Graphics2D g) {
@@ -37,7 +44,16 @@ public class Button {
             return;
         }
 
-        TemporaryUiRenderer.drawButton(g, bounds, label, hovered, pressed, enabled);
+        if (backgroundVisible) {
+            TemporaryUiRenderer.drawButton(g, bounds, label, hovered, pressed, enabled);
+        } else {
+            g.setColor(enabled ? Color.WHITE : new Color(160, 160, 160));
+            g.setFont(UiFontManager.dorris(22, Font.BOLD));
+            int textWidth = g.getFontMetrics().stringWidth(label);
+            int textY = bounds.y + (bounds.height - g.getFontMetrics().getHeight()) / 2
+                    + g.getFontMetrics().getAscent();
+            g.drawString(label, bounds.x + (bounds.width - textWidth) / 2, textY);
+        }
     }
 
     public void updateHover(Point logicalPoint) {

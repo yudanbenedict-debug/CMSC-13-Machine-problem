@@ -13,10 +13,9 @@ public final class TemporaryUiRenderer {
     private static final Color TOP_BAR = new Color(28, 63, 78);
     private static final Color PANEL = new Color(34, 47, 61);
     private static final Color TEXT = new Color(222, 235, 230);
-    private static final Color MUTED_TEXT = new Color(171, 191, 194);
-
     static {
         AssetCache.load("UI_CHOICES_BORDER", "images/buttons/CHOICES_BORDER.png");
+        AssetCache.load("UI_CHOICES_BORDER_SELECTED", "images/buttons/CHOICES_BORDER_SELECTED.png");
     }
 
     private TemporaryUiRenderer() {
@@ -52,11 +51,6 @@ public final class TemporaryUiRenderer {
 
     public static void drawGameplayQuestion(Graphics2D g, String question, String optionA,
                                             String optionB, String optionC, String optionD) {
-        g.setColor(PANEL);
-        g.fillRoundRect(GameConstants.TEMPORARY_GAMEPLAY_PANEL_X,
-                GameConstants.TEMPORARY_GAMEPLAY_PANEL_Y,
-                GameConstants.TEMPORARY_GAMEPLAY_PANEL_WIDTH,
-                GameConstants.TEMPORARY_GAMEPLAY_PANEL_HEIGHT, 16, 16);
         g.setColor(TEXT);
         g.setFont(UiFontManager.dorris(21, Font.PLAIN));
         drawWrappedText(g, question, GameConstants.TEMPORARY_GAMEPLAY_QUESTION_TEXT_X,
@@ -81,11 +75,6 @@ public final class TemporaryUiRenderer {
         }
 
     public static void drawOptionState(Graphics2D g, String title, String description) {
-        g.setColor(PANEL);
-        g.fillRoundRect(GameConstants.TEMPORARY_GAMEPLAY_CHOICES_PANEL_X,
-            GameConstants.TEMPORARY_GAMEPLAY_CHOICES_PANEL_Y,
-            GameConstants.TEMPORARY_GAMEPLAY_CHOICES_PANEL_WIDTH,
-            GameConstants.TEMPORARY_GAMEPLAY_CHOICES_PANEL_HEIGHT, 12, 12);
         g.setColor(TEXT);
         g.setFont(UiFontManager.dorris(24, Font.BOLD));
         g.drawString(title, GameConstants.TEMPORARY_GAMEPLAY_CHOICES_PANEL_X + 30,
@@ -98,26 +87,24 @@ public final class TemporaryUiRenderer {
 
         public static void drawChoice(Graphics2D g, String label, String text, Rectangle bounds,
                       boolean hovered, boolean pressed, boolean selected) {
-        Color fill = selected
-            ? new Color(142, 106, 50)
-            : pressed
-            ? new Color(120, 178, 176)
-            : hovered
-            ? new Color(76, 126, 151)
-            : new Color(48, 64, 78);
-        g.setColor(fill);
-        g.fillRoundRect(bounds.x, bounds.y, bounds.width, bounds.height, 10, 10);
-        g.setColor(selected || hovered ? new Color(232, 204, 130) : MUTED_TEXT);
-        g.drawRoundRect(bounds.x, bounds.y, bounds.width, bounds.height, 10, 10);
-        g.setColor(TEXT);
-        g.setFont(UiFontManager.dorris(18, Font.BOLD));
-        g.drawString(label + ".", bounds.x + 16, bounds.y + 32);
-        g.setFont(UiFontManager.dorris(17, Font.PLAIN));
-        drawWrappedText(g, text, bounds.x + 48, bounds.y + 23,
-            GameConstants.TEMPORARY_GAMEPLAY_CHOICE_TEXT_WIDTH, 20, 2);
-        if (AssetCache.get("UI_CHOICES_BORDER") != null) {
-            g.drawImage(AssetCache.get("UI_CHOICES_BORDER"), bounds.x, bounds.y,
+        String borderKey = selected ? "UI_CHOICES_BORDER_SELECTED" : "UI_CHOICES_BORDER";
+        if (AssetCache.get(borderKey) != null) {
+            g.drawImage(AssetCache.get(borderKey), bounds.x, bounds.y,
                 bounds.width, bounds.height, null);
+        }
+        g.setColor(TEXT);
+        if (text.isBlank()) {
+            g.setFont(UiFontManager.dorris(28, Font.BOLD));
+            int textWidth = g.getFontMetrics().stringWidth(label);
+            int textY = bounds.y + (bounds.height - g.getFontMetrics().getHeight()) / 2
+                + g.getFontMetrics().getAscent();
+            g.drawString(label, bounds.x + (bounds.width - textWidth) / 2, textY);
+        } else {
+            g.setFont(UiFontManager.dorris(18, Font.BOLD));
+            g.drawString(label + ".", bounds.x + 16, bounds.y + 32);
+            g.setFont(UiFontManager.dorris(17, Font.PLAIN));
+            drawWrappedText(g, text, bounds.x + 48, bounds.y + 23,
+                GameConstants.TEMPORARY_GAMEPLAY_CHOICE_TEXT_WIDTH, 20, 2);
         }
     }
 
