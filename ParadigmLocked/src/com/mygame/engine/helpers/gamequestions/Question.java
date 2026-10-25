@@ -1,18 +1,18 @@
 package com.mygame.engine.helpers.gamequestions;
 //TODO: protected only so other class inside the same package can access it immediately.
 public class Question {
-    public String id;
-    public String category;
-    public String moduleOrLanguage;
-    public String questionType;
-    public String label;
+    public final String id;
+    public final String category;
+    public final String moduleOrLanguage;
+    public final String questionType;
+    public final String label;
     
-    public String question;
+    public final String question;
    
-    public String optionA;
-    public String optionB;
-    public String optionC;
-    public String optionD;
+    public final String optionA;
+    public final String optionB;
+    public final String optionC;
+    public final String optionD;
   
 
     public String correctAnswer;
