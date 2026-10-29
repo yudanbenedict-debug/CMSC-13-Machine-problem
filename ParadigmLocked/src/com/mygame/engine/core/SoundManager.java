@@ -5,13 +5,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import javax.sound.sampled.*;
 
 public class SoundManager {
-    private static final Map<String, Clip> sounds = new HashMap<>();
-    private static Clip activeMusic;
+    private static final Map<String, Clip> sounds = new ConcurrentHashMap<>();
+    private static volatile Clip activeMusic;
     private static float masterVolume = 0.6f;  // 0.0 to 1.0
 
     //load a sound into the cache

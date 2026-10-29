@@ -5,19 +5,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class UiFontManager {
-    private static final Map<String, Font> FONTS = new HashMap<>();
+    private static final Map<String, Font> FONTS = new ConcurrentHashMap<>();
+    // deriveFont() creates a new Font object every call, and the UI calls it many times per frame.
+    // Derived fonts are cached by key|style|size so each size is only created once.
+    private static final Map<String, Font> DERIVED = new ConcurrentHashMap<>();
     private static final Font FALLBACK = new Font(Font.SERIF, Font.PLAIN, 18);
 
     private UiFontManager() {
     }
 
     public static Font dorris(float size, int style) {
-        return FONTS.getOrDefault("DORRIS", FALLBACK).deriveFont(style, size);
+        return font("DORRIS", size, style);
     }
 
     public static void preload(String key, String path) {
@@ -32,6 +35,7 @@ public final class UiFontManager {
             if (Files.isRegularFile(candidate)) {
                 try (InputStream input = Files.newInputStream(candidate)) {
                     FONTS.put(key, Font.createFont(Font.TRUETYPE_FONT, input));
+                    DERIVED.clear(); // drop any fallback fonts cached before this font existed
                     return;
                 } catch (IOException | java.awt.FontFormatException exception) {
                     System.err.println("Unable to load font: " + candidate);
@@ -43,8 +47,7 @@ public final class UiFontManager {
     }
 
     public static Font openSauceSansLight(float size, int style) {
-        Font font = FONTS.get("OPEN_SAUCE_SANS_LIGHT");
-        return (font == null ? FALLBACK : font).deriveFont(style, size);
+        return font("OPEN_SAUCE_SANS_LIGHT", size, style);
     }
 
     public static Font arpona(float size, int style) {
@@ -60,7 +63,13 @@ public final class UiFontManager {
     }
 
     private static Font font(String key, float size, int style) {
-        return FONTS.getOrDefault(key, FALLBACK).deriveFont(style, size);
+        String cacheKey = key + '|' + style + '|' + size;
+        Font cached = DERIVED.get(cacheKey);
+        if (cached == null) {
+            cached = FONTS.getOrDefault(key, FALLBACK).deriveFont(style, size);
+            DERIVED.put(cacheKey, cached);
+        }
+        return cached;
     }
 
 }

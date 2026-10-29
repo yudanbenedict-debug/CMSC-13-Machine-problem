@@ -73,6 +73,6 @@ public class FileLoader {
     }
 
     public List<Question> getQuestions() {
-        return List.copyOf(QUES);
+        return List.copyOf(questions);
     }
 }
