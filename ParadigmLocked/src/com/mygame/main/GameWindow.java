@@ -19,7 +19,7 @@ public class GameWindow extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(640, 360));
         setContentPane(surface);
-        setSize(GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT);
+        setSize(GameConstants.DEFAULT_WINDOW_WIDTH, GameConstants.DEFAULT_WINDOW_HEIGHT);
         setLocationRelativeTo(null);
         displayController.setDisplayChangedListener(surface::refreshViewport);
     }

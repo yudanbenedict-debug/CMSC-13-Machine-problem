@@ -22,9 +22,6 @@ public class MainMenuState implements StateMethods {
 
     public MainMenuState(GameStateManager stateManager) {
         this.stateManager = stateManager;
-        AssetCache.load("UI_MAIN_MENU_BACKGROUND", "images/mainmenu/MAIN_MENU_STATIC.png");
-        AssetCache.load("UI_MAIN_MENU_LOGO", "images/mainmenu/MAIN_MENU_LOGO_STATIC.png");
-        AssetCache.load("UI_MENU_FANCY_BORDER", "images/buttons/FANCY_BORDER.png");
         int x = GameConstants.TEMPORARY_MENU_BUTTON_X;
         int width = GameConstants.TEMPORARY_MENU_BUTTON_WIDTH;
         int height = GameConstants.TEMPORARY_MENU_BUTTON_HEIGHT;

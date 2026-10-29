@@ -19,7 +19,8 @@ import java.util.List;
 public class FileLoader {
         //TODO: AFTER COMPILING EVERYTHING, REMNOVE SETTINGS.JSON AND TRANSFER THE JAR DEPENDECY TO ITS PROPER PLACE.
         //assume we create a csv/txt file for each questions.
-        public List<Question> questions = new ArrayList<>();
+        private static final List<Question> LOADED_QUESTIONS = new ArrayList<>();
+        public final List<Question> questions = LOADED_QUESTIONS;
         private static final String[] SEARCH_DIRECTORIES = {
             ".",
             "CMSC-13-Machine-problem",
@@ -28,14 +29,23 @@ public class FileLoader {
         };
     
         //probably so it's easier to group them by "difficulty"; not finalized
-    public void initializeQuestions(String filePath){
+    public FileLoader() {
+        synchronized (LOADED_QUESTIONS) {
+            if (LOADED_QUESTIONS.isEmpty()) {
+                initializeQuestions("assets/MCQ/programming_questions.csv");
+                initializeQuestions("assets/MCQ/theoretical_questions.csv");
+            }
+        }
+    }
+
+    public final void initializeQuestions(String filePath){
         
         //gets the entire String, top to bottom, skipping the header of a CSV
         CSVFormat format = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).get();
 
         try (Reader reader = openReader(filePath); CSVParser parser = format.parse(reader)) {
             for (CSVRecord record : parser) {
-                questions.add(new Question(record.get("id"), record.get("catgeory"),
+                questions.add(new Question(record.get("id"), record.get("category"),
                     record.get("module_or_language"), record.get("question_type"),
                     record.get("label"), record.get("question"), record.get("option_A"),
                     record.get("option_B"), record.get("option_C"), record.get("option_D"),
@@ -43,7 +53,6 @@ public class FileLoader {
             }
         } catch (IOException | IllegalArgumentException exception) {
             System.err.println("[FileLoader] FAILED to load " + filePath + ": " + exception);
-            exception.printStackTrace();
         }
     }
         

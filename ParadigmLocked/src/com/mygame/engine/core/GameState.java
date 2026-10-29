@@ -5,11 +5,12 @@ package com.mygame.engine.core;
  */
 
 public enum GameState {
+  LOADING,
     MENU,
     CREDITS,
     HOWTOPLAY, 
     PLAYING, //continue game will use playing gamestate but will import a savestate (make 3 save slots ig idk)
-    PAUSED,
+      PAUSED,
     WON,
     LOST,
     LEADERBOARD

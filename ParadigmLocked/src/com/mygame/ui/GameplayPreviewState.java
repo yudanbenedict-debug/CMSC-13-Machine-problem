@@ -51,7 +51,6 @@ public class GameplayPreviewState implements StateMethods {
 
     public GameplayPreviewState(GameStateManager stateManager) {
         this.stateManager = stateManager;
-        AssetCache.load("UI_MAIN_GAME_BACKGROUND", "images/backgrounds/MAIN_GAME_BACKGROUND_STATIC.png");
         questionSelector = new QuestionSelector();
         currentQuestion = questionSelector.getNextQuestion();
         // Only build a round when there is a question, otherwise the app would crash at launch.

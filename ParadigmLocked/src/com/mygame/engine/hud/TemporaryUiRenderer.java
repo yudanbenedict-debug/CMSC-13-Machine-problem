@@ -13,11 +13,6 @@ public final class TemporaryUiRenderer {
     private static final Color TOP_BAR = new Color(28, 63, 78);
     private static final Color PANEL = new Color(34, 47, 61);
     private static final Color TEXT = new Color(222, 235, 230);
-    static {
-        AssetCache.load("UI_CHOICES_BORDER", "images/buttons/CHOICES_BORDER.png");
-        AssetCache.load("UI_CHOICES_BORDER_SELECTED", "images/buttons/CHOICES_BORDER_SELECTED.png");
-    }
-
     private TemporaryUiRenderer() {
     }
 

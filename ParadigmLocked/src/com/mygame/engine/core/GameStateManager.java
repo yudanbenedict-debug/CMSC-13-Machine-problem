@@ -39,6 +39,7 @@ public class GameStateManager {
     public void mousePressed(java.awt.event.MouseEvent e) { StateMethods h = handlers.get(current); if (h != null) h.mousePressed(e); }
     public void mouseReleased(java.awt.event.MouseEvent e) { StateMethods h = handlers.get(current); if (h != null) h.mouseReleased(e); }
     public void mouseMoved(java.awt.event.MouseEvent e) { StateMethods h = handlers.get(current); if (h != null) h.mouseMoved(e); }
+    public void mouseWheelMoved(java.awt.event.MouseWheelEvent e) { StateMethods h = handlers.get(current); if (h != null) h.mouseWheelMoved(e); }
     public void keyPressed(java.awt.event.KeyEvent e) { StateMethods h = handlers.get(current); if (h != null) h.keyPressed(e); }
     public void keyReleased(java.awt.event.KeyEvent e) { StateMethods h = handlers.get(current); if (h != null) h.keyReleased(e); }
 }

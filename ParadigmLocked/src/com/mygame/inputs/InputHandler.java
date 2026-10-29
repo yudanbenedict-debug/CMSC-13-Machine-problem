@@ -60,6 +60,11 @@ public class InputHandler extends MouseAdapter implements KeyListener {
     }
 
     @Override
+    public void mouseWheelMoved(java.awt.event.MouseWheelEvent event) {
+        stateManager.mouseWheelMoved(event);
+    }
+
+    @Override
     public void mouseEntered(MouseEvent event) {
         event.getComponent().requestFocusInWindow();
     }
