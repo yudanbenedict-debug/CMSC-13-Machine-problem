@@ -1,15 +1,19 @@
 package com.mygame.engine.core;
 
+import java.awt.AlphaComposite;
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import javax.imageio.ImageIO;
 
 public class AssetCache {
-    private static final Map<String, BufferedImage> images = new HashMap<>();
+    private static final Map<String, BufferedImage> images = new ConcurrentHashMap<>();
 
     //load image
     public static BufferedImage loadImage(String path) throws IOException {
@@ -48,6 +52,7 @@ public class AssetCache {
             }
         }
 
+        image = toCompatibleImage(image);
         images.put(path, image);
         return image;
     }
@@ -63,5 +68,33 @@ public class AssetCache {
 
     public static BufferedImage get(String key){
         return images.get(key);
+    }
+
+    /*
+        ImageIO usually returns images in a pixel format the screen doesn't use (e.g. 3-byte BGR),
+        which forces Java2D to convert pixels on EVERY drawImage call. Copying the image once into
+        a "compatible" image (same format as the display) makes every draw after that much cheaper.
+        Looks identical, only the internal pixel layout changes.
+    */
+    private static BufferedImage toCompatibleImage(BufferedImage source) {
+        if (source == null || GraphicsEnvironment.isHeadless()) {
+            return source;
+        }
+        try {
+            GraphicsConfiguration config = GraphicsEnvironment.getLocalGraphicsEnvironment()
+                .getDefaultScreenDevice().getDefaultConfiguration();
+            if (source.getColorModel().equals(config.getColorModel(source.getTransparency()))) {
+                return source;
+            }
+            BufferedImage compatible = config.createCompatibleImage(
+                source.getWidth(), source.getHeight(), source.getTransparency());
+            Graphics2D g = compatible.createGraphics();
+            g.setComposite(AlphaComposite.Src);
+            g.drawImage(source, 0, 0, null);
+            g.dispose();
+            return compatible;
+        } catch (RuntimeException e) {
+            return source; // never fail loading just because the optimization failed
+        }
     }
 }

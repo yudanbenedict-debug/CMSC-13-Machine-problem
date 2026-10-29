@@ -11,13 +11,21 @@ import java.awt.Rectangle;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class OverlayMenuRenderer {
     private static final Color TEXT = new Color(246, 242, 229);
     private static final Color MUTED_TEXT = new Color(209, 205, 192);
     private static final Color ACCENT = new Color(229, 190, 94);
     private static final Color VOLUME_FILL = new Color(0x98AAFF);
+    // Word-wrapping used to run every frame (plus every scroll) and created a new BufferedImage each
+    // time just to measure text. The info screens' text never changes, so the result is cached
+    // per lines-array.
+    private static final Map<String[], List<String>> WRAP_CACHE =
+        Collections.synchronizedMap(new IdentityHashMap<>());
 
     private OverlayMenuRenderer() {
     }
@@ -151,6 +159,15 @@ public final class OverlayMenuRenderer {
     }
 
     private static List<String> wrapLines(String[] lines) {
+        List<String> cached = WRAP_CACHE.get(lines);
+        if (cached == null) {
+            cached = Collections.unmodifiableList(computeWrappedLines(lines));
+            WRAP_CACHE.put(lines, cached);
+        }
+        return cached;
+    }
+
+    private static List<String> computeWrappedLines(String[] lines) {
         int contentWidth = GameConstants.OVERLAY_MENU_WIDTH
             - (GameConstants.OVERLAY_MENU_CONTENT_X - GameConstants.OVERLAY_MENU_X) * 2
             - GameConstants.OVERLAY_MENU_SCROLLBAR_RIGHT_INSET;

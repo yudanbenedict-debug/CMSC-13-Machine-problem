@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
 import javax.swing.JPanel;
 
@@ -44,14 +45,15 @@ public class DisplaySurface extends JPanel {
         super.paintComponent(graphics);
         Graphics2D g = (Graphics2D) graphics.create();
         calculateViewport();
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, getWidth(), getHeight());
+        // background is already cleared to black by super.paintComponent (setBackground(BLACK))
         g.translate(offsetX, offsetY);
         g.scale(scale, scale);
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         stateManager.draw(g);
         objectManager.drawAll(g);
         g.dispose();
+        // flush the frame to the screen right away (smoother animation, mainly on Linux)
+        Toolkit.getDefaultToolkit().sync();
     }
 
     private void calculateViewport() {
