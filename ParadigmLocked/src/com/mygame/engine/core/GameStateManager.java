@@ -12,6 +12,7 @@ import java.util.Map;
 
 public class GameStateManager {
     private GameState current;
+    private GameState previous;
     private final Map<GameState, StateMethods> handlers = new EnumMap<>(GameState.class);
 
     public GameStateManager(GameState initial) {
@@ -26,12 +27,15 @@ public class GameStateManager {
         if (newState == current) return;
         StateMethods oldHandler = handlers.get(current);
         if (oldHandler != null) oldHandler.onExit();
+        previous = current;
         current = newState;
         StateMethods newHandler = handlers.get(current);
         if (newHandler != null) newHandler.onEnter();
     }
 
     public GameState getState() { return current; }
+    // the state we came from (e.g. HOW TO PLAY returns to PAUSED or MENU depending on this)
+    public GameState getPreviousState() { return previous; }
 
     public void update(double dt) { StateMethods h = handlers.get(current); if (h != null) h.update(dt); }
     public void draw(Graphics2D g) { StateMethods h = handlers.get(current); if (h != null) h.draw(g); }

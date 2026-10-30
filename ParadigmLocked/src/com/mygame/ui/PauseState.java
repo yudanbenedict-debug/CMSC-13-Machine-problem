@@ -5,31 +5,41 @@ import com.mygame.engine.core.GameStateManager;
 import com.mygame.engine.core.SoundManager;
 import com.mygame.engine.core.StateMethods;
 import com.mygame.engine.helpers.constants.GameConstants;
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.util.function.Consumer;
 
 public final class PauseState implements StateMethods {
     private final GameStateManager stateManager;
-    private double volume = 0.6;
+    private final Consumer<Graphics2D> backdrop;
+    private double volume = SoundManager.getVolumeMaster();
     private double lastAudibleVolume = volume;
     private boolean muted;
     private boolean draggingVolume;
+    private boolean muteHovered;
     private int hoveredOption = -1;
 
-    public PauseState(GameStateManager stateManager) {
+    /** backdrop draws the frozen gameplay behind the pause overlay (can be null). */
+    public PauseState(GameStateManager stateManager, Consumer<Graphics2D> backdrop) {
         this.stateManager = stateManager;
+        this.backdrop = backdrop;
     }
 
     @Override
     public void draw(Graphics2D graphics) {
-        OverlayMenuRenderer.drawPauseOverlay(graphics,
-            hoveredOption == 0, hoveredOption == 1, hoveredOption == 2, volume, muted);
+        if (backdrop != null) {
+            backdrop.accept(graphics);
+            graphics.setColor(new Color(0, 0, 0, 175));
+            graphics.fillRect(0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT);
+        }
+        OverlayMenuRenderer.drawPauseOverlay(graphics, hoveredOption, volume, muted, muteHovered);
     }
 
     @Override public void update(double deltaTime) { }
-    @Override public void onEnter() { }
+    @Override public void onEnter() { hoveredOption = -1; draggingVolume = false; }
     @Override public void onExit() { }
 
     @Override
@@ -73,23 +83,27 @@ public final class PauseState implements StateMethods {
     @Override public void keyReleased(KeyEvent event) { }
 
     private void updateHover(Point point) {
-        hoveredOption = -1;
+        int now = -1;
         for (int index = 0; index < 3; index++) {
             if (OverlayMenuRenderer.getPauseOptionBounds(index).contains(point)) {
-                hoveredOption = index;
+                now = index;
                 break;
             }
         }
+        if (now >= 0 && now != hoveredOption) {
+            SoundManager.playMenuHover();
+        }
+        hoveredOption = now;
+        muteHovered = OverlayMenuRenderer.getPauseMuteBounds().contains(point);
         if (draggingVolume) {
             updateVolume(point.x);
         }
     }
 
     private void updateVolume(int mouseX) {
-        var bounds = OverlayMenuRenderer.getPauseVolumeBounds();
-        int start = bounds.x + GameConstants.PAUSE_VOLUME_ICON_WIDTH + 8;
-        int width = bounds.width - GameConstants.PAUSE_VOLUME_ICON_WIDTH - 16;
-        volume = Math.max(0, Math.min(1, (mouseX - start) / (double) width));
+        int start = OverlayMenuRenderer.volumeTrackStart();
+        int end = OverlayMenuRenderer.volumeTrackEnd();
+        volume = Math.max(0, Math.min(1, (mouseX - start) / (double) (end - start)));
         if (volume > 0) {
             lastAudibleVolume = volume;
             muted = false;

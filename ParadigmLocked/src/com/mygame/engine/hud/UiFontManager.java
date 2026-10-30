@@ -46,6 +46,18 @@ public final class UiFontManager {
         System.err.println("Unable to find font: " + path);
     }
 
+    public static Font question(float size, int style) {
+        return font("QUESTION_FONT", size, style);
+    }
+
+    public static Font choices(float size, int style) {
+        return font("CHOICES_FONT", size, style);
+    }
+
+    public static Font openSauceSansBold(float size, int style) {
+        return font("OPEN_SAUCE_SANS_BOLD", size, style);
+    }
+
     public static Font openSauceSansLight(float size, int style) {
         return font("OPEN_SAUCE_SANS_LIGHT", size, style);
     }

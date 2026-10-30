@@ -26,7 +26,21 @@ public final class AssetLoader {
         "UI_RADIAL_FANCY_BORDER_CONTACT_HELP|images/buttons/FANCY_BORDER_CONTACT_HELP.png",
         "UI_PAUSE_VOLUME_BAR|images/buttons/PAAUSE_MENU_VOLUME_BAR.png",
         "UI_MAIN_MENU_LOGO|images/mainmenu/MAIN_MENU_LOGO_STATIC.png",
-        "UI_MAIN_MENU_BACKGROUND|images/mainmenu/MAIN_MENU_STATIC.png"
+        "UI_MAIN_MENU_BACKGROUND|images/mainmenu/MAIN_MENU_STATIC.png",
+        "UI_PAUSE_BUTTON|images/buttons/PAUSE_BUTTON.png",
+        "UI_PAUSE_AUDIOBAR_ACTIVE|images/buttons/PAUSE_AUDIOBAR.png",
+        "UI_QUESTION_BORDER|images/buttons/QUESTION_BORDER.png",
+        "UI_HINT_DECLARATIVE_DYNAMO|images/hint/DECLARATIVE_DYNAMO.png",
+        "UI_OVERLAY_IMMUTABLEMOTHER_WIN|images/backgrounds/OVERLAY_IMMUTABLEMOTHER_WIN.png",
+        "UI_OVERLAY_IMMUTABLEMOTHER_LOSE|images/backgrounds/OVERLAY_IMMUTABLEMOTHER_LOSE.png",
+        "UI_OVERLAY_DARKWEBKING_WIN|images/backgrounds/OVERLAY_DARKWEBKING_WIN.png",
+        "UI_OVERLAY_DARKWEBKING_LOSE|images/backgrounds/OVERLAY_DARKWEBKING_LOSE.png",
+        "CONSUMABLE_NULLSLINGER|images/consumables/CONSUMABLE_NULLSLINGER.png",
+        "CONSUMABLE_SCRIPTERS_SACRIFICE|images/consumables/CONSUMABLE_SCRIPTERS_SACRIFICE.png",
+        "CONSUMABLE_REFRESHER|images/consumables/CONSUMABLE_REFRESHER.png",
+        "CONSUMABLE_BORDER|images/consumables/CONSUMABLE_BORDER.png",
+        "CONSUMABLE_CHOICES_BORDER|images/consumables/CONSUMABLE_CHOICES_BORDER.png",
+        "CONSUMABLE_CHOICES_BORDER_SELECTED|images/consumables/CONSUMABLE_CHOICES_BORDER_SELECTED.png"
     };
 
     private static final String[] FONT_ASSETS = {
@@ -36,7 +50,9 @@ public final class AssetLoader {
         "OPEN_SAUCE_SANS_LIGHT|fonts/OpenSauceSans-Light.ttf",
         "ARPONA|fonts/Fontspring-DEMO-arpona-bold.otf",
         "NOTO_SERIF|fonts/NotoSerifEthiopic-VariableFont_wdth,wght.ttf",
-        "LUCKIEST_GUY|fonts/LuckiestGuy-Regular.ttf"
+        "LUCKIEST_GUY|fonts/LuckiestGuy-Regular.ttf",
+        "QUESTION_FONT|fonts/QUESTION_FONT.ttf",
+        "CHOICES_FONT|fonts/CHOICES_FONT.ttf"
     };
 
     private static final String[] CSV_ASSETS = {

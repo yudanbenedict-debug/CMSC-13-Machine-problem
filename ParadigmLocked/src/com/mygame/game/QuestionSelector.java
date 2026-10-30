@@ -35,6 +35,33 @@ public class QuestionSelector {
     }
 
     /*
+        Prefers an unused question from the given category ("Theoretical" / "Programming").
+        Falls back to the weighted pick when that category is used up (or null is passed).
+        Used for difficulty progression: early nodes ask theory, the Core asks programming.
+    */
+    public Question getNextQuestion(String preferredCategory) {
+        if (preferredCategory != null) {
+            List<Question> list = questionType.getQuestionsByCategory().get(preferredCategory);
+            if (list != null) {
+                Set<Integer> used = usedCategoryIndexes.computeIfAbsent(preferredCategory, ignored -> new HashSet<>());
+                List<Integer> available = new ArrayList<>();
+                for (int i = 0; i < list.size(); i++) {
+                    if (!used.contains(i)) {
+                        available.add(i);
+                    }
+                }
+                if (!available.isEmpty()) {
+                    int index = available.get(random.nextInt(available.size()));
+                    used.add(index);
+                    keySelectorForCategory.markUsed(preferredCategory);
+                    return list.get(index);
+                }
+            }
+        }
+        return getQuestionByCategory();
+    }
+
+    /*
         Returns the next unused question selected by weighted question type
         Return NULL after every question type has been used
     */

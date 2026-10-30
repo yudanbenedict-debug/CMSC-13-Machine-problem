@@ -50,6 +50,9 @@ public class QuestionRound {
     }
     //debugger
     private void getQuestionsMaterials(){
+        if (!Boolean.getBoolean("paradigm.debug")) {
+            return; // run with -Dparadigm.debug=true to print the questions again
+        }
         System.err.println(currQuestion.id);
         System.err.println(currQuestion.question);
         for(int i = 0; i < 4; i++){

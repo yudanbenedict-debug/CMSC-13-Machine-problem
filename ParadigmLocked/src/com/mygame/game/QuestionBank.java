@@ -1,9 +1,6 @@
 package com.mygame.game;
 import com.mygame.engine.helpers.gamequestions.FileLoader;
 import com.mygame.engine.helpers.gamequestions.Question;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -15,23 +12,14 @@ public class QuestionBank {
     private final Map<String, List<Question>> questionsByType;
 
     public QuestionBank() {
+        // FileLoader already loads both MCQ files once (shared static list). Loading them again
+        // here used to add every question 2-3 times, so the same question could repeat.
         FileLoader loader = new FileLoader();
-        loadMcqFile(loader, "assets/MCQ/programming_questions.csv");
-        loadMcqFile(loader, "assets/MCQ/theoretical_questions.csv");
-        loadMcqFile(loader, "ParadigmLocked/assets/MCQ/programming_questions.csv");
-        loadMcqFile(loader, "ParadigmLocked/assets/MCQ/theoretical_questions.csv");
         questions = loader.getQuestions();
         questionsByCategory = questions.stream()
                 .collect(Collectors.groupingBy(question -> question.category));
         questionsByType = questions.stream()
                 .collect(Collectors.groupingBy(question -> question.questionType));
-    }
-
-    private void loadMcqFile(FileLoader loader, String filePath) {
-        Path path = Paths.get(filePath);
-        if (Files.exists(path)) {
-            loader.initializeQuestions(filePath);
-        }
     }
 
     public Map<String, List<Question>> getQuestionsByCategory() {

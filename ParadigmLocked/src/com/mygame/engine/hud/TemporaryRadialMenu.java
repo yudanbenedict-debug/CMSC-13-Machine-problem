@@ -1,13 +1,13 @@
 package com.mygame.engine.hud;
 
 import com.mygame.engine.core.AssetCache;
+import com.mygame.engine.core.SoundManager;
 import com.mygame.engine.helpers.algorithms.EasingMethods;
 import com.mygame.engine.helpers.algorithms.TransformMethods;
 import com.mygame.engine.helpers.constants.GameConstants;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
@@ -44,8 +44,8 @@ public class TemporaryRadialMenu {
         public String description() {
             return switch (this) {
                 case ANSWER -> "Choose an answer below.";
-                case CONTACT_HELP -> "Dynamic Dynamo hint panel.";
-                case ABANDON -> "Confirm whether to abandon this question.";
+                case CONTACT_HELP -> "Declarative Dynamo hint panel.";
+                case ABANDON -> "Do you really wish to Abandon this question?";
                 case CONSUMABLE -> "Choose a consumable for this turn.";
             };
         }
@@ -79,6 +79,18 @@ public class TemporaryRadialMenu {
 
     public Option getActiveOption() {
         return active < 0 ? null : options[active];
+    }
+
+    /** Programmatically opens an option (e.g. jump back to ANSWER after using a consumable). */
+    public void select(Option option) {
+        for (int index = 0; index < options.length; index++) {
+            if (options[index] == option) {
+                active = index;
+            }
+        }
+        if (selectionListener != null) {
+            selectionListener.accept(option);
+        }
     }
 
     public void clearSelection() {
@@ -126,7 +138,12 @@ public class TemporaryRadialMenu {
     }
 
     public void mouseMoved(Point point) {
-        hovered = pick(point.x, point.y);
+        int picked = pick(point.x, point.y);
+        if (picked >= 0 && picked != hovered) {
+            // pooled clip, so fast sweeps across the options stack into a clicking ratchet
+            SoundManager.playSFX("RADIAL_CHOICES_HOVER_01");
+        }
+        hovered = picked;
     }
 
     public void mousePressed(Point point) {
@@ -226,22 +243,20 @@ public class TemporaryRadialMenu {
                     GameConstants.TEMPORARY_RADIAL_LABEL_WIDTH,
                     GameConstants.TEMPORARY_RADIAL_LABEL_HEIGHT, 14, 14);
         }
-        graphics.setColor(Color.WHITE);
+        Color glow = index == active ? UiText.DEFAULT_GLOW
+            : index == hovered ? new Color(255, 236, 170, 140) : null;
         if (option == Option.CONTACT_HELP) {
-            drawCenteredLabel(graphics, "Contact", UiFontManager.dorris(10, Font.BOLD), -10);
-            drawCenteredLabel(graphics, "Declarative Dynamo", UiFontManager.dorris(16, Font.BOLD), 11);
+            // "Contact" is left-aligned with the start of "Declarative Dynamo" (2pt smaller than before)
+            Font nameFont = UiFontManager.dorris(14, Font.BOLD);
+            float nameX = -UiText.width("Declarative Dynamo", nameFont) / 2f;
+            UiText.draw(graphics, "Contact", UiFontManager.dorris(10, Font.BOLD), nameX, -6, Color.WHITE, glow);
+            UiText.draw(graphics, "Declarative Dynamo", nameFont, nameX, 11, Color.WHITE, glow);
         } else {
-            graphics.setFont(UiFontManager.dorris(option == Option.ABANDON ? 15 : 18, Font.BOLD));
-            FontMetrics metrics = graphics.getFontMetrics();
-            float baseline = (metrics.getAscent() - metrics.getDescent()) / 2f;
-            graphics.drawString(option.label, -metrics.stringWidth(option.label) / 2f, baseline);
+            Font font = UiFontManager.dorris(option == Option.ABANDON ? 15 : 18, Font.BOLD);
+            java.awt.font.TextLayout layout = UiText.layout(option.label, font);
+            float baseline = (layout.getAscent() - layout.getDescent()) / 2f;
+            UiText.drawLayout(graphics, layout, -layout.getAdvance() / 2f, baseline, Color.WHITE, glow);
         }
         graphics.setTransform(oldTransform);
-    }
-
-    private void drawCenteredLabel(Graphics2D graphics, String text, Font font, float baseline) {
-        graphics.setFont(font);
-        FontMetrics metrics = graphics.getFontMetrics();
-        graphics.drawString(text, -metrics.stringWidth(text) / 2f, baseline);
     }
 }

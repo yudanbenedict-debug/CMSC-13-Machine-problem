@@ -36,6 +36,7 @@ public class InputHandler extends MouseAdapter implements KeyListener {
         this.toggleFullscreen = toggleFullscreen;
         component.addMouseListener(this);
         component.addMouseMotionListener(this);
+        component.addMouseWheelListener(this); // scrolling in How to Play / Credits
         component.addKeyListener(this);
     }
 

@@ -3,11 +3,13 @@ package com.mygame.ui;
 import com.mygame.engine.core.AssetCache;
 import com.mygame.engine.helpers.constants.GameConstants;
 import com.mygame.engine.hud.UiFontManager;
+import com.mygame.engine.hud.UiText;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -20,49 +22,167 @@ public final class OverlayMenuRenderer {
     private static final Color TEXT = new Color(246, 242, 229);
     private static final Color MUTED_TEXT = new Color(209, 205, 192);
     private static final Color ACCENT = new Color(229, 190, 94);
+    private static final Color SUBHEADING = new Color(0x98AAFF);
     private static final Color VOLUME_FILL = new Color(0x98AAFF);
-    // Word-wrapping used to run every frame (plus every scroll) and created a new BufferedImage each
-    // time just to measure text. The info screens' text never changes, so the result is cached
-    // per lines-array.
-    private static final Map<String[], List<String>> WRAP_CACHE =
+    private static final Color HOVER_GLOW = new Color(255, 236, 170, 200);
+    // the info screens never change, so their layout is computed once per block list
+    private static final Map<List<InfoBlock>, Layout> LAYOUT_CACHE =
         Collections.synchronizedMap(new IdentityHashMap<>());
 
     private OverlayMenuRenderer() {
     }
 
-    public static void drawBackdrop(Graphics2D graphics) {
+    // ------------------------------------------------------------------ info overlays
+
+    private static final class Placed {
+        final InfoBlock block;
+        final int y;
+        final int height;
+        final UiText.Block text;
+
+        Placed(InfoBlock block, int y, int height, UiText.Block text) {
+            this.block = block;
+            this.y = y;
+            this.height = height;
+            this.text = text;
+        }
     }
 
-    public static void drawInfoOverlay(Graphics2D graphics, String title, String[] lines,
+    private static final class Layout {
+        final List<Placed> items = new ArrayList<>();
+        int height;
+    }
+
+    private static int contentX() {
+        return GameConstants.OVERLAY_MENU_CONTENT_X;
+    }
+
+    private static int contentWidth() {
+        return GameConstants.OVERLAY_MENU_WIDTH
+            - (GameConstants.OVERLAY_MENU_CONTENT_X - GameConstants.OVERLAY_MENU_X) * 2
+            - GameConstants.OVERLAY_MENU_SCROLLBAR_RIGHT_INSET;
+    }
+
+    private static Font fontFor(InfoBlock.Kind kind) {
+        switch (kind) {
+            case HEADING:
+                return UiFontManager.luckiestGuy(32, Font.PLAIN);
+            case SUBHEADING:
+                return UiFontManager.dorris(24, Font.BOLD);
+            default:
+                return UiFontManager.notoSerif(18, Font.PLAIN);
+        }
+    }
+
+    private static Layout layout(List<InfoBlock> blocks) {
+        Layout cached = LAYOUT_CACHE.get(blocks);
+        if (cached != null) {
+            return cached;
+        }
+        Layout layout = new Layout();
+        int y = 0;
+        for (InfoBlock block : blocks) {
+            switch (block.kind) {
+                case GAP:
+                    y += block.height;
+                    break;
+                case IMAGE: {
+                    UiText.Block caption = block.text == null ? null
+                        : UiText.wrap(block.text, UiFontManager.dorris(16, Font.BOLD), contentWidth(), 1.1f, 3);
+                    int height = block.height + (caption == null ? 0 : (int) caption.height + 6);
+                    layout.items.add(new Placed(block, y, height, caption));
+                    y += height + 14;
+                    break;
+                }
+                default: {
+                    float spacing = block.kind == InfoBlock.Kind.BODY ? 1.2f : 1.05f;
+                    UiText.Block text = UiText.wrap(block.text, fontFor(block.kind), contentWidth(), spacing, 99);
+                    int top = block.kind == InfoBlock.Kind.HEADING && y > 0 ? 18
+                        : block.kind == InfoBlock.Kind.SUBHEADING && y > 0 ? 8 : 0;
+                    y += top;
+                    layout.items.add(new Placed(block, y, (int) text.height, text));
+                    y += (int) text.height + (block.kind == InfoBlock.Kind.BODY ? 12 : 8);
+                }
+            }
+        }
+        layout.height = Math.max(1, y);
+        LAYOUT_CACHE.put(blocks, layout);
+        return layout;
+    }
+
+    public static void drawInfoOverlay(Graphics2D graphics, String title, List<InfoBlock> blocks,
                                        double scroll, boolean backHovered) {
         drawFrame(graphics, "UI_OVERLAY_MENU_DEFAULT");
-        drawCenteredText(graphics, title.toUpperCase(),
-            UiFontManager.arpona(42, Font.BOLD), GameConstants.LOGICAL_WIDTH / 2, 155, TEXT);
-        drawScrollableBody(graphics, lines, scroll);
-        drawTextButton(graphics, "BACK TO MENU", getBackBounds(), backHovered);
+        UiText.drawCentered(graphics, title.toUpperCase(), UiFontManager.arpona(42, Font.BOLD),
+            GameConstants.LOGICAL_WIDTH / 2f, 155, TEXT, null);
+        drawScrollableBody(graphics, blocks, scroll);
+        drawTextButton(graphics, "BACK", getBackBounds(), backHovered);
     }
 
-    public static void drawPauseOverlay(Graphics2D graphics, boolean continueHovered,
-                                        boolean howToPlayHovered, boolean menuHovered,
-                                        double volume, boolean muted) {
-        drawFrame(graphics, "UI_OVERLAY_MENU_PAUSE");
-        drawCenteredText(graphics, "GAME", UiFontManager.arpona(
-            GameConstants.PAUSE_TITLE_FONT_SIZE, Font.BOLD),
-            GameConstants.LOGICAL_WIDTH / 2, 145, TEXT);
-        drawCenteredText(graphics, "PAUSED", UiFontManager.arpona(
-            GameConstants.PAUSE_TITLE_FONT_SIZE, Font.BOLD),
-            GameConstants.LOGICAL_WIDTH / 2, 190, TEXT);
+    public static double scroll(double current, double wheelRotation, List<InfoBlock> blocks) {
+        int viewportHeight = GameConstants.OVERLAY_MENU_CONTENT_BOTTOM - GameConstants.OVERLAY_MENU_CONTENT_TOP;
+        double maxScroll = Math.max(0, layout(blocks).height - viewportHeight);
+        return Math.max(0, Math.min(maxScroll, current + wheelRotation * 40));
+    }
 
-        int centerX = GameConstants.LOGICAL_WIDTH / 2;
-        drawTextButton(graphics, "CONTINUE", centeredBounds(centerX,
-            GameConstants.PAUSE_OPTION_START_Y), continueHovered);
-        drawTextButton(graphics, "HOW TO PLAY", centeredBounds(centerX,
-            GameConstants.PAUSE_OPTION_START_Y + GameConstants.PAUSE_OPTION_SPACING),
-            howToPlayHovered);
-        drawTextButton(graphics, "BACK TO MENU", centeredBounds(centerX,
-            GameConstants.PAUSE_OPTION_START_Y + GameConstants.PAUSE_OPTION_SPACING * 2),
-            menuHovered);
-        drawVolumeBar(graphics, volume, muted);
+    private static void drawScrollableBody(Graphics2D graphics, List<InfoBlock> blocks, double scroll) {
+        Layout layout = layout(blocks);
+        int contentTop = GameConstants.OVERLAY_MENU_CONTENT_TOP;
+        int contentBottom = GameConstants.OVERLAY_MENU_CONTENT_BOTTOM;
+        int viewportHeight = contentBottom - contentTop;
+        float centerX = GameConstants.LOGICAL_WIDTH / 2f;
+
+        Graphics2D clipped = (Graphics2D) graphics.create();
+        clipped.clip(new Rectangle(contentX() - 10, contentTop, contentWidth() + 20, viewportHeight));
+        for (Placed item : layout.items) {
+            int top = contentTop + item.y - (int) scroll;
+            if (top > contentBottom || top + item.height < contentTop) {
+                continue;
+            }
+            if (item.block.kind == InfoBlock.Kind.IMAGE) {
+                BufferedImage image = AssetCache.get(item.block.imageKey);
+                if (image != null) {
+                    int height = item.block.height;
+                    int width = image.getWidth() * height / image.getHeight();
+                    clipped.drawImage(image, (int) (centerX - width / 2f), top, width, height, null);
+                }
+                if (item.text != null) {
+                    drawCenteredBlock(clipped, item.text, centerX, top + item.block.height + 6, MUTED_TEXT, null);
+                }
+                continue;
+            }
+            Color color = item.block.kind == InfoBlock.Kind.HEADING ? ACCENT
+                : item.block.kind == InfoBlock.Kind.SUBHEADING ? SUBHEADING : MUTED_TEXT;
+            Color glow = item.block.kind == InfoBlock.Kind.HEADING ? new Color(229, 190, 94, 90) : null;
+            drawCenteredBlock(clipped, item.text, centerX, top, color, glow);
+            if (item.block.kind == InfoBlock.Kind.HEADING) {
+                int lineY = top + (int) item.height + 3;
+                clipped.setColor(new Color(229, 190, 94, 120));
+                clipped.drawLine((int) centerX - 120, lineY, (int) centerX + 120, lineY);
+            }
+        }
+        clipped.dispose();
+
+        int contentHeight = layout.height;
+        if (contentHeight > viewportHeight) {
+            int trackX = contentX() + contentWidth() + 14;
+            graphics.setColor(new Color(246, 242, 229, 100));
+            graphics.fillRect(trackX, contentTop, GameConstants.OVERLAY_MENU_SCROLLBAR_WIDTH, viewportHeight);
+            int thumbHeight = Math.max(30, viewportHeight * viewportHeight / contentHeight);
+            int thumbY = contentTop + (int) ((viewportHeight - thumbHeight)
+                * (scroll / (contentHeight - viewportHeight)));
+            graphics.setColor(ACCENT);
+            graphics.fillRect(trackX, thumbY, GameConstants.OVERLAY_MENU_SCROLLBAR_WIDTH, thumbHeight);
+        }
+    }
+
+    private static void drawCenteredBlock(Graphics2D g, UiText.Block block, float centerX, float top,
+                                          Color color, Color glow) {
+        float baseline = top + block.ascent;
+        for (java.awt.font.TextLayout line : block.lines) {
+            UiText.drawLayout(g, line, centerX - line.getAdvance() / 2f, baseline, color, glow);
+            baseline += block.lineHeight;
+        }
     }
 
     public static Rectangle getBackBounds() {
@@ -71,6 +191,23 @@ public final class OverlayMenuRenderer {
             GameConstants.OVERLAY_MENU_BACK_Y,
             GameConstants.OVERLAY_MENU_BACK_WIDTH,
             GameConstants.OVERLAY_MENU_BACK_HEIGHT);
+    }
+
+    // ------------------------------------------------------------------ pause overlay
+
+    public static void drawPauseOverlay(Graphics2D graphics, int hoveredOption, double volume,
+                                        boolean muted, boolean muteHovered) {
+        drawFrame(graphics, "UI_OVERLAY_MENU_PAUSE");
+        Font titleFont = UiFontManager.arpona(GameConstants.PAUSE_TITLE_FONT_SIZE, Font.BOLD);
+        float centerX = GameConstants.LOGICAL_WIDTH / 2f;
+        UiText.drawCentered(graphics, "GAME", titleFont, centerX, GameConstants.PAUSE_TITLE_GAME_BASELINE, TEXT, null);
+        UiText.drawCentered(graphics, "PAUSED", titleFont, centerX, GameConstants.PAUSE_TITLE_PAUSED_BASELINE, TEXT, null);
+
+        String[] labels = {"CONTINUE", "HOW TO PLAY", "BACK TO MENU"};
+        for (int index = 0; index < labels.length; index++) {
+            drawTextButton(graphics, labels[index], getPauseOptionBounds(index), hoveredOption == index);
+        }
+        drawVolumeBar(graphics, volume, muted, muteHovered);
     }
 
     public static Rectangle getPauseOptionBounds(int index) {
@@ -89,16 +226,56 @@ public final class OverlayMenuRenderer {
             GameConstants.PAUSE_VOLUME_ICON_WIDTH, volumeBounds.height);
     }
 
-    public static double scroll(double current, int wheelRotation, String[] lines) {
-        int contentHeight = Math.max(1, wrapLines(lines).size() * 38);
-        int viewportHeight = GameConstants.OVERLAY_MENU_CONTENT_BOTTOM
-            - GameConstants.OVERLAY_MENU_CONTENT_TOP;
-        double maxScroll = Math.max(0, contentHeight - viewportHeight);
-        return Math.max(0, Math.min(maxScroll, current + wheelRotation * 38));
+    /** Slider track (x range) used for dragging: from the speaker icon to the inner right edge. */
+    public static int volumeTrackStart() {
+        return GameConstants.PAUSE_VOLUME_X + GameConstants.PAUSE_VOLUME_ICON_WIDTH;
     }
 
+    public static int volumeTrackEnd() {
+        return GameConstants.PAUSE_VOLUME_X + Math.round(GameConstants.PAUSE_VOLUME_WIDTH * 475f / 500f);
+    }
+
+    private static void drawVolumeBar(Graphics2D graphics, double volume, boolean muted, boolean muteHovered) {
+        Rectangle bounds = getPauseVolumeBounds();
+        // inner pill of the PNG (500x150): x 25..475, y 25..125, radius 50 -> the fill matches its border
+        double sx = bounds.width / 500.0;
+        double sy = bounds.height / 150.0;
+        Shape inner = new RoundRectangle2D.Double(bounds.x + 25 * sx, bounds.y + 25 * sy,
+            450 * sx, 100 * sy, 100 * sy, 100 * sy);
+        if (!muted) {
+            double fillEnd = volumeTrackStart() + (volumeTrackEnd() - volumeTrackStart()) * volume;
+            Graphics2D clipped = (Graphics2D) graphics.create();
+            clipped.clip(inner);
+            clipped.setColor(VOLUME_FILL);
+            clipped.fill(new Rectangle((int) (bounds.x + 25 * sx), bounds.y,
+                (int) Math.ceil(fillEnd - (bounds.x + 25 * sx)), bounds.height));
+            clipped.dispose();
+        }
+        BufferedImage frame = AssetCache.get(muted ? "UI_PAUSE_VOLUME_BAR" : "UI_PAUSE_AUDIOBAR_ACTIVE");
+        if (frame == null) {
+            frame = AssetCache.get("UI_PAUSE_VOLUME_BAR");
+        }
+        if (frame != null) {
+            graphics.drawImage(frame, bounds.x, bounds.y, bounds.width, bounds.height, null);
+        }
+        if (muted) {
+            Rectangle mute = getPauseMuteBounds();
+            graphics.setColor(new Color(0xD05A5A));
+            graphics.setStroke(new BasicStroke(4f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            graphics.drawLine(mute.x + mute.width / 4, mute.y + mute.height / 4,
+                mute.x + mute.width * 3 / 4 + 4, mute.y + mute.height * 3 / 4);
+            graphics.setStroke(new BasicStroke(1f));
+        }
+        if (muteHovered) {
+            Rectangle mute = getPauseMuteBounds();
+            graphics.setColor(new Color(255, 236, 170, 50));
+            graphics.fillOval(mute.x + 6, mute.y + 8, mute.width - 4, mute.height - 16);
+        }
+    }
+
+    // ------------------------------------------------------------------ shared
+
     private static void drawFrame(Graphics2D graphics, String assetKey) {
-        drawBackdrop(graphics);
         BufferedImage frame = AssetCache.get(assetKey);
         if (frame != null) {
             graphics.drawImage(frame, GameConstants.OVERLAY_MENU_X, GameConstants.OVERLAY_MENU_Y,
@@ -106,129 +283,12 @@ public final class OverlayMenuRenderer {
         }
     }
 
-    private static void drawScrollableBody(Graphics2D graphics, String[] lines, double scroll) {
-        int contentX = GameConstants.OVERLAY_MENU_CONTENT_X;
-        int contentWidth = GameConstants.OVERLAY_MENU_WIDTH
-            - (contentX - GameConstants.OVERLAY_MENU_X) * 2
-            - GameConstants.OVERLAY_MENU_SCROLLBAR_RIGHT_INSET;
-        int contentTop = GameConstants.OVERLAY_MENU_CONTENT_TOP;
-        int contentBottom = GameConstants.OVERLAY_MENU_CONTENT_BOTTOM;
-        List<String> wrappedLines = wrapLines(lines);
-
-        Graphics2D clipped = (Graphics2D) graphics.create();
-        clipped.clip(new Rectangle(contentX, contentTop, contentWidth, contentBottom - contentTop));
-        clipped.setFont(UiFontManager.luckiestGuy(22, Font.PLAIN));
-        FontMetrics metrics = clipped.getFontMetrics();
-        int y = contentTop + metrics.getAscent() - (int) scroll;
-        for (String line : wrappedLines) {
-            drawCenteredText(clipped, line, clipped.getFont(),
-                GameConstants.LOGICAL_WIDTH / 2, y, MUTED_TEXT);
-            y += 38;
-        }
-        clipped.dispose();
-
-        int contentHeight = Math.max(1, wrappedLines.size() * 38);
-        int viewportHeight = contentBottom - contentTop;
-        if (contentHeight > viewportHeight) {
-            int trackX = GameConstants.OVERLAY_MENU_X + GameConstants.OVERLAY_MENU_WIDTH
-                - GameConstants.OVERLAY_MENU_SCROLLBAR_RIGHT_INSET;
-            graphics.setColor(new Color(246, 242, 229, 100));
-            graphics.fillRect(trackX, contentTop, GameConstants.OVERLAY_MENU_SCROLLBAR_WIDTH,
-                viewportHeight);
-            int thumbHeight = Math.max(30, viewportHeight * viewportHeight / contentHeight);
-            int thumbY = contentTop + (int) ((viewportHeight - thumbHeight)
-                * (scroll / (contentHeight - viewportHeight)));
-            graphics.setColor(ACCENT);
-            graphics.fillRect(trackX, thumbY, GameConstants.OVERLAY_MENU_SCROLLBAR_WIDTH, thumbHeight);
-        }
-    }
-
-    private static void drawVolumeBar(Graphics2D graphics, double volume, boolean muted) {
-        Rectangle bounds = getPauseVolumeBounds();
-        BufferedImage frame = AssetCache.get("UI_PAUSE_VOLUME_BAR");
-        int inset = 8;
-        int trackX = bounds.x + inset + GameConstants.PAUSE_VOLUME_ICON_WIDTH;
-        int trackY = bounds.y + bounds.height / 2 - 7;
-        int trackWidth = bounds.width - GameConstants.PAUSE_VOLUME_ICON_WIDTH - inset * 2;
-        graphics.setColor(VOLUME_FILL);
-        graphics.fill(new RoundRectangle2D.Double(trackX, trackY,
-            trackWidth * (muted ? 0 : volume), 14, 14, 14));
-        if (frame != null) {
-            graphics.drawImage(frame, bounds.x, bounds.y, bounds.width, bounds.height, null);
-        }
-    }
-
-    private static List<String> wrapLines(String[] lines) {
-        List<String> cached = WRAP_CACHE.get(lines);
-        if (cached == null) {
-            cached = Collections.unmodifiableList(computeWrappedLines(lines));
-            WRAP_CACHE.put(lines, cached);
-        }
-        return cached;
-    }
-
-    private static List<String> computeWrappedLines(String[] lines) {
-        int contentWidth = GameConstants.OVERLAY_MENU_WIDTH
-            - (GameConstants.OVERLAY_MENU_CONTENT_X - GameConstants.OVERLAY_MENU_X) * 2
-            - GameConstants.OVERLAY_MENU_SCROLLBAR_RIGHT_INSET;
-        BufferedImage metricsImage = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D metricsGraphics = metricsImage.createGraphics();
-        metricsGraphics.setFont(UiFontManager.luckiestGuy(22, Font.PLAIN));
-        FontMetrics metrics = metricsGraphics.getFontMetrics();
-        List<String> wrapped = new ArrayList<>();
-        for (String paragraph : lines) {
-            StringBuilder currentLine = new StringBuilder();
-            for (String word : paragraph.split("\\s+")) {
-                String candidate = currentLine.length() == 0
-                    ? word : currentLine + " " + word;
-                if (metrics.stringWidth(candidate) <= contentWidth) {
-                    currentLine.append(currentLine.length() == 0 ? word : " " + word);
-                    continue;
-                }
-                if (currentLine.length() > 0) {
-                    wrapped.add(currentLine.toString());
-                    currentLine.setLength(0);
-                }
-                appendWordWithinWidth(wrapped, currentLine, word, metrics, contentWidth);
-            }
-            if (currentLine.length() > 0) {
-                wrapped.add(currentLine.toString());
-            }
-        }
-        metricsGraphics.dispose();
-        return wrapped;
-    }
-
-    private static void appendWordWithinWidth(List<String> wrapped, StringBuilder currentLine,
-                                               String word, FontMetrics metrics, int maxWidth) {
-        for (int index = 0; index < word.length(); index++) {
-            String candidate = currentLine.toString() + word.charAt(index);
-            if (metrics.stringWidth(candidate) > maxWidth && currentLine.length() > 0) {
-                wrapped.add(currentLine.toString());
-                currentLine.setLength(0);
-            }
-            currentLine.append(word.charAt(index));
-        }
-    }
-
     private static Rectangle centeredBounds(int centerX, int y) {
-        return new Rectangle(centerX - 180, y - 30, 360, 48);
+        return new Rectangle(centerX - 180, y - 24, 360, 42);
     }
 
-    private static void drawTextButton(Graphics2D graphics, String text, Rectangle bounds,
-                                       boolean hovered) {
-        graphics.setColor(hovered ? ACCENT : TEXT);
-        graphics.setFont(UiFontManager.notoSerif(25, Font.BOLD));
-        FontMetrics metrics = graphics.getFontMetrics();
-        graphics.drawString(text, bounds.x + (bounds.width - metrics.stringWidth(text)) / 2,
-            bounds.y + (bounds.height - metrics.getHeight()) / 2 + metrics.getAscent());
-    }
-
-    private static void drawCenteredText(Graphics2D graphics, String text, Font font,
-                                         int centerX, int baseline, Color color) {
-        graphics.setFont(font);
-        graphics.setColor(color);
-        graphics.drawString(text, centerX - graphics.getFontMetrics().stringWidth(text) / 2,
-            baseline);
+    private static void drawTextButton(Graphics2D graphics, String text, Rectangle bounds, boolean hovered) {
+        UiText.drawInBox(graphics, text, UiFontManager.notoSerif(25, Font.BOLD), bounds,
+            hovered ? ACCENT : TEXT, hovered ? HOVER_GLOW : null);
     }
 }

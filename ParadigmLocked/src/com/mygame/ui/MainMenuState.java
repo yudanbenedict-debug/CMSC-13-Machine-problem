@@ -3,6 +3,7 @@ package com.mygame.ui;
 import com.mygame.engine.core.AssetCache;
 import com.mygame.engine.core.GameState;
 import com.mygame.engine.core.GameStateManager;
+import com.mygame.engine.core.SoundManager;
 import com.mygame.engine.core.StateMethods;
 import com.mygame.engine.helpers.constants.GameConstants;
 import com.mygame.engine.hud.Button;
@@ -35,6 +36,15 @@ public class MainMenuState implements StateMethods {
 
     @Override
     public void draw(Graphics2D g) {
+        drawBackground(g);
+        startButton.draw(g);
+        howToPlayButton.draw(g);
+        creditsButton.draw(g);
+        quitButton.draw(g);
+    }
+
+    /** Menu background + logo (also drawn behind the How to Play / Credits overlays). */
+    public void drawBackground(Graphics2D g) {
         BufferedImage background = AssetCache.get("UI_MAIN_MENU_BACKGROUND");
         if (background != null) {
             g.drawImage(background, 0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT, null);
@@ -56,14 +66,10 @@ public class MainMenuState implements StateMethods {
         //     g.setColor(new Color(154, 201, 193));
         //     g.drawString("ASCEND, PROGRAMMER!", 104, 195);
         // }
-        startButton.draw(g);
-        howToPlayButton.draw(g);
-        creditsButton.draw(g);
-        quitButton.draw(g);
     }
 
     @Override public void update(double dt) { }
-    @Override public void onEnter() { }
+    @Override public void onEnter() { SoundManager.playMusic("THEME_MAIN_MENU"); }
     @Override public void onExit() { }
     @Override public void mousePressed(MouseEvent event) { updatePressed(event, true); }
     @Override public void mouseReleased(MouseEvent event) { updatePressed(event, false); }

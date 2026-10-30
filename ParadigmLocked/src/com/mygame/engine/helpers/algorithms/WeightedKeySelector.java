@@ -32,6 +32,13 @@ public class WeightedKeySelector<K, V> {
         }
 
     }
+    //counts a key as used when an item was picked for it outside selectNextKey()
+    public void markUsed(K key){
+        if(usedCounts.containsKey(key)){
+            usedCounts.put(key, usedCounts.get(key) + 1);
+        }
+    }
+
     //returns the selected key needed.
     public K selectNextKey(){
         NavigableMap<Double, K> rouletteWheel = new TreeMap<>();
