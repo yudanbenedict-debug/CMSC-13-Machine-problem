@@ -11,8 +11,8 @@ import java.util.stream.Stream;
 
 public final class AssetLoader {
     private static final String[] IMAGE_ASSETS = {
-        "UI_LOADING_BACKGROUND_1|images/backgrounds/LOADING_SCREEN_BACKGROUND_VARIANT_1.png",
-        "UI_LOADING_BACKGROUND_2|images/backgrounds/LOADING_SCREEN_BACKGROUND_VARIANT_2.png",
+        "UI_LOADING_BACKGROUND_DARKWEBKING|images/backgrounds/LOADING_SCREEN_BACKGROUND_DARKWEBKING.png",
+        "UI_LOADING_BACKGROUND_IMMUTABLEMOTHER|images/backgrounds/LOADING_SCREEN_BACKGROUND_IMMUTABLEMOTHER.png",
         "UI_MAIN_GAME_BACKGROUND|images/backgrounds/MAIN_GAME_BACKGROUND_STATIC.png",
         "UI_OVERLAY_MENU_DEFAULT|images/backgrounds/OVERLAY_MENU_DEFAULT.png",
         "UI_OVERLAY_MENU_PAUSE|images/backgrounds/OVERLAY_MENU_PAUSE.png",
@@ -81,8 +81,8 @@ public final class AssetLoader {
     }
 
     public static void prepareLoadingScreenAssets() {
-        AssetCache.load("UI_LOADING_BACKGROUND_1", "images/backgrounds/LOADING_SCREEN_BACKGROUND_VARIANT_1.png");
-        AssetCache.load("UI_LOADING_BACKGROUND_2", "images/backgrounds/LOADING_SCREEN_BACKGROUND_VARIANT_2.png");
+        AssetCache.load("UI_LOADING_BACKGROUND_DARKWEBKING", "images/backgrounds/LOADING_SCREEN_BACKGROUND_DARKWEBKING.png");
+        AssetCache.load("UI_LOADING_BACKGROUND_IMMUTABLEMOTHER", "images/backgrounds/LOADING_SCREEN_BACKGROUND_IMMUTABLEMOTHER.png");
         UiFontManager.preload("OPEN_SAUCE_SANS_LIGHT", "fonts/OpenSauceSans-Light.ttf");
     }
 

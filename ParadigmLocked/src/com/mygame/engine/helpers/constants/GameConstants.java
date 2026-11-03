@@ -97,7 +97,7 @@ public final class GameConstants {
     public static final int TEMPORARY_MENU_LOGO_X = (LOGICAL_WIDTH - 620) / 2;
     public static final int TEMPORARY_MENU_LOGO_Y = 45;
     public static final int TEMPORARY_MENU_LOGO_WIDTH = 620;
-    public static final int TEMPORARY_MENU_LOGO_HEIGHT = 124;
+    public static final int TEMPORARY_MENU_LOGO_HEIGHT = TEMPORARY_MENU_LOGO_WIDTH * 300 / 1000; // keeps the PNG's 1000x300 ratio
 
     public static final int TEMPORARY_GAMEPLAY_QUESTION_TEXT_HEIGHT = 250;
 
@@ -124,18 +124,21 @@ public final class GameConstants {
     public static final int SCRIPTERS_SACRIFICE_SAFE_USES = 2;
     public static final double END_SCREEN_DELAY_SECONDS = 1.2;
     public static final double END_SCREEN_SECONDS = 6.0;
-    // true = the player fights for the Immutable Mother, false = for the Dark Web King
-    public static final boolean PLAYER_SIDE_IMMUTABLE_MOTHER = true;
 
     // ---- Consumable panel ----
-    public static final int CONSUMABLE_PANEL_X = 560;
-    public static final int CONSUMABLE_PANEL_Y = 420;
-    public static final int CONSUMABLE_PANEL_WIDTH = 520;
-    public static final int CONSUMABLE_PANEL_HEIGHT = 285;
-    public static final int CONSUMABLE_ROW_HEIGHT = 80;
+    public static final int CONSUMABLE_PANEL_X = 590;
+    public static final int CONSUMABLE_PANEL_Y = 425;
+    public static final int CONSUMABLE_PANEL_WIDTH = 460;
+    public static final int CONSUMABLE_PANEL_HEIGHT = 270;
+    public static final int CONSUMABLE_ROW_HEIGHT = 72;
 
     // ---- Audio ----
     public static final float MUSIC_VOLUME_LEVEL = 0.35f;
+    // main menu theme after "press any key": quieter so the menu button sounds stand out
+    public static final float MENU_MUSIC_DUCKED_LEVEL = 0.18f;
+    public static final float SFX_VOLUME_LEVEL = 0.8f;          // all sound effects -20%
+    public static final float HINT_PROMPT_VOLUME_LEVEL = 0.6f;  // hint prompt -40%
+    public static final float RADIAL_HOVER_VOLUME_LEVEL = 0.4f; // radial hover at 40%
 
     private GameConstants() {
     }

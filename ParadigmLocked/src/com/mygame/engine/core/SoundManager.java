@@ -100,8 +100,35 @@ public class SoundManager {
         return name.startsWith("THEME") || name.endsWith("_THEME");
     }
 
+    // per-track level overrides (e.g. the menu theme gets quieter after the title screen)
+    private static final Map<String, Float> levelOverrides = new ConcurrentHashMap<>();
+
     private static float volumeFor(String name) {
-        return isMusic(name) ? masterVolume * GameConstants.MUSIC_VOLUME_LEVEL : masterVolume;
+        Float override = levelOverrides.get(name);
+        if (override != null) {
+            return masterVolume * override;
+        }
+        if (isMusic(name)) {
+            return masterVolume * GameConstants.MUSIC_VOLUME_LEVEL;
+        }
+        if (name.equals("HINT_PROMPT")) {
+            return masterVolume * GameConstants.HINT_PROMPT_VOLUME_LEVEL;
+        }
+        if (name.startsWith("RADIAL_CHOICES_HOVER")) {
+            return masterVolume * GameConstants.RADIAL_HOVER_VOLUME_LEVEL;
+        }
+        return masterVolume * GameConstants.SFX_VOLUME_LEVEL;
+    }
+
+    /** Sets a fixed level (0-1, before master volume) for one sound/track and applies it now. */
+    public static void setLevel(String name, float level) {
+        levelOverrides.put(name, level);
+        Clip[] pool = sounds.get(name);
+        if (pool != null) {
+            for (Clip clip : pool) {
+                applyVolumeToClip(clip, volumeFor(name));
+            }
+        }
     }
 
     // play a short SFX; overlapping calls use the next clip in the pool so they stack

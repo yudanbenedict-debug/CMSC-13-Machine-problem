@@ -4,6 +4,7 @@ import com.mygame.engine.core.AssetCache;
 import com.mygame.engine.helpers.constants.GameConstants;
 import com.mygame.engine.hud.UiFontManager;
 import com.mygame.engine.hud.UiText;
+import com.mygame.game.Faction;
 import com.mygame.game.ParadigmSpace;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -22,8 +23,7 @@ import java.awt.image.BufferedImage;
  */
 public final class GameHud {
     private static final Color TEXT = new Color(222, 235, 230);
-    private static final Color ALLY = new Color(0x7FB05A);
-    private static final Color ENEMY = new Color(0xD05A5A);
+    private static final Color DANGER = new Color(0xD05A5A);
     private static final Color GOLD = new Color(229, 190, 94);
     private static final Color DEAD = new Color(80, 80, 80);
 
@@ -55,8 +55,8 @@ public final class GameHud {
         int x = GameConstants.HUD_NODE_STATUS_X;
         int y = GameConstants.HUD_NODE_STATUS_Y;
         boolean lowHp = space.ally().totalHp() == 1;
-        drawSideRow(g, x, y, "YOU", space.ally(), ALLY, true, lowHp, time);
-        drawSideRow(g, x, y + 44, "ENEMY", space.enemy(), ENEMY, false, false, time);
+        drawSideRow(g, x, y, "YOU", space.ally(), Faction.player().color, true, lowHp, time);
+        drawSideRow(g, x, y + 44, "ENEMY", space.enemy(), Faction.enemy().color, false, false, time);
     }
 
     private static void drawSideRow(Graphics2D g, int x, int y, String who, ParadigmSpace.Side side,
@@ -70,7 +70,7 @@ public final class GameHud {
 
         ParadigmSpace.Node node = side.foremost();
         String name = node == null ? "DESTROYED" : node.name.toUpperCase();
-        Color nameColor = pulse && (Math.sin(time * 8) > 0) ? ENEMY : TEXT;
+        Color nameColor = pulse && (Math.sin(time * 8) > 0) ? DANGER : TEXT;
         UiText.draw(g, who + "  " + name, UiFontManager.dorris(16, Font.BOLD), x + 26, y + 17, nameColor,
             pulse ? new Color(0xD0, 0x5A, 0x5A, 150) : null);
 
@@ -92,7 +92,7 @@ public final class GameHud {
         int seconds = (int) Math.ceil(Math.max(0, timeLeft));
         boolean urgent = running && seconds <= 10;
         UiText.drawCentered(g, "TIME LEFT: " + seconds, UiFontManager.luckiestGuy(28, Font.PLAIN),
-            centerX, 48, urgent ? ENEMY : TEXT, urgent ? new Color(0xD0, 0x5A, 0x5A, 170) : null);
+            centerX, 48, urgent ? DANGER : TEXT, urgent ? new Color(0xD0, 0x5A, 0x5A, 170) : null);
         UiText.drawCentered(g, score + " (POINTS)", UiFontManager.luckiestGuy(24, Font.PLAIN),
             centerX, 86, GOLD, null);
     }
@@ -127,7 +127,7 @@ public final class GameHud {
             boolean foremost = nodeIndex == (isAlly ? allyFront : enemyFront);
             double cx = x + 16 + step * slot;
             double radius = node.tier == ParadigmSpace.Tier.CORE ? 6.5 : 4.5;
-            Color color = isAlly ? ALLY : ENEMY;
+            Color color = isAlly ? Faction.player().color : Faction.enemy().color;
             if (node.destroyed()) {
                 g.setColor(DEAD);
                 g.draw(new Ellipse2D.Double(cx - radius, laneY - radius, radius * 2, radius * 2));
@@ -142,8 +142,8 @@ public final class GameHud {
             }
         }
         g.setStroke(new BasicStroke(1f));
-        UiText.draw(g, "YOU", UiFontManager.dorris(12, Font.BOLD), x + 12, y + 80, ALLY);
+        UiText.draw(g, "YOU", UiFontManager.dorris(12, Font.BOLD), x + 12, y + 80, Faction.player().color);
         UiText.draw(g, "ENEMY", UiFontManager.dorris(12, Font.BOLD),
-            x + width - 12 - UiText.width("ENEMY", UiFontManager.dorris(12, Font.BOLD)), y + 80, ENEMY);
+            x + width - 12 - UiText.width("ENEMY", UiFontManager.dorris(12, Font.BOLD)), y + 80, Faction.enemy().color);
     }
 }

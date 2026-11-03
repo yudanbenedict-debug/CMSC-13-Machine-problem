@@ -7,6 +7,7 @@ import com.mygame.engine.core.SoundManager;
 import com.mygame.engine.core.StateMethods;
 import com.mygame.engine.helpers.constants.GameConstants;
 import com.mygame.engine.helpers.gamequestions.Question;
+import com.mygame.engine.hud.Button;
 import com.mygame.engine.hud.ChoiceButton;
 import com.mygame.engine.hud.TemporaryRadialMenu;
 import com.mygame.engine.hud.TemporaryUiRenderer;
@@ -27,6 +28,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import javax.swing.SwingUtilities;
 
 /*
     Main gameplay screen.
@@ -45,6 +47,7 @@ public class GameplayPreviewState implements StateMethods {
     private final TemporaryRadialMenu radialMenu;
     private final ChoiceButton[] choiceButtons;
     private final ChoiceButton[] abandonChoiceButtons;
+    private final Button hintButton;
     private final Random random = new Random();
 
     private QuestionSelector questionSelector;
@@ -95,6 +98,9 @@ public class GameplayPreviewState implements StateMethods {
                 GameConstants.TEMPORARY_ABANDON_CHOICE_WIDTH, GameConstants.TEMPORARY_ABANDON_CHOICE_HEIGHT,
                 "NO", "", this::cancelAbandonQuestion)
         };
+        hintButton = new Button(GameConstants.TEMPORARY_GAMEPLAY_CHOICES_PANEL_X + 300,
+            GameConstants.TEMPORARY_GAMEPLAY_CHOICES_PANEL_Y + 150, 280, 64, "ASK FOR A HINT",
+            "UI_MENU_FANCY_BORDER", this::requestHint);
         startNewGame();
     }
 
@@ -111,7 +117,7 @@ public class GameplayPreviewState implements StateMethods {
         gameResult = null;
         endDelay = 0;
         noticeMessage = "";
-        radialMenu.select(TemporaryRadialMenu.Option.ANSWER);
+        radialMenu.clearSelection(); // nothing open by default, the player picks from the wheel
         loadNextQuestion();
     }
 
@@ -168,11 +174,8 @@ public class GameplayPreviewState implements StateMethods {
             drawHintPanel(g);
         } else if (activeOption == TemporaryRadialMenu.Option.CONSUMABLE) {
             consumablePanel.draw(g);
-        } else {
-            for (ChoiceButton choiceButton : choiceButtons) {
-                choiceButton.draw(g);
-            }
         }
+        // activeOption == null: nothing open yet, only the "Select a choice." prompt is shown
         radialMenu.draw(g);
     }
 
@@ -226,14 +229,15 @@ public class GameplayPreviewState implements StateMethods {
         if (activeOption == TemporaryRadialMenu.Option.CONSUMABLE) {
             return noticeMessage.isEmpty() ? consumablePanel.statusText() : noticeMessage;
         }
-        if (activeOption != TemporaryRadialMenu.Option.ANSWER) {
+        if (activeOption != null && activeOption != TemporaryRadialMenu.Option.ANSWER) {
             return "";
         }
         if (!noticeMessage.isEmpty()) {
             return noticeMessage;
         }
         String prefix = scriptersActiveThisTurn ? "[x2 DAMAGE] " : "";
-        return prefix + (selectedChoiceIndex >= 0 ? "Click it again or press Enter to confirm." : "Pick an answer.");
+        return prefix + (selectedChoiceIndex >= 0 && activeOption != null
+            ? "Click it again or press Enter to confirm. Right-click to deselect." : "Select a choice.");
     }
 
     private void drawHintPanel(Graphics2D g) {
@@ -252,12 +256,17 @@ public class GameplayPreviewState implements StateMethods {
             body = hintText;
         } else if (currentRound == null || answerLocked) {
             body = "Answer first, programmer. I'll be here for the next one.";
+        } else if (hintsLeft > 0) {
+            body = "Need a hint? It will cost you one function call.";
         } else {
             body = "I'm out of function calls. A Refresher would reset them.";
         }
         UiText.Block block = UiText.fit("\"" + body + "\"", UiFontManager.choices(24, Font.PLAIN), 24, 13,
             textWidth, 150, 1.05f);
         UiText.drawBlock(g, block, textX, panelY + 68, TEXT, null);
+        if (canAskHint()) {
+            hintButton.draw(g);
+        }
         UiText.draw(g, "Function calls left: " + hintsLeft + "/" + GameConstants.DYNAMO_HINT_USES,
             UiFontManager.dorris(18, Font.BOLD), textX, panelY + 255, hintsLeft > 0 ? TEXT : BAD);
     }
@@ -294,6 +303,10 @@ public class GameplayPreviewState implements StateMethods {
         if (gameResult != null) {
             return;
         }
+        if (SwingUtilities.isRightMouseButton(event)) {
+            deselectChoice();
+            return;
+        }
         if (answerLocked && !radialHit(point)) {
             loadNextQuestion();
             return;
@@ -307,7 +320,24 @@ public class GameplayPreviewState implements StateMethods {
         return distance <= GameConstants.TEMPORARY_RADIAL_ITEM_RADIUS + GameConstants.TEMPORARY_RADIAL_LABEL_WIDTH / 2.0 + 40;
     }
 
-    @Override public void mouseReleased(MouseEvent event) { updateButtons(event.getPoint(), false); }
+    @Override
+    public void mouseReleased(MouseEvent event) {
+        if (!SwingUtilities.isRightMouseButton(event)) {
+            updateButtons(event.getPoint(), false);
+        }
+    }
+
+    /** Right-click: drop the picked answer (and a picked consumable) without confirming anything. */
+    private void deselectChoice() {
+        if (answerLocked) {
+            return;
+        }
+        selectedChoiceIndex = -1;
+        for (ChoiceButton choiceButton : choiceButtons) {
+            choiceButton.setSelected(false);
+        }
+        consumablePanel.clearSelection();
+    }
 
     @Override
     public void mouseMoved(MouseEvent event) {
@@ -328,6 +358,8 @@ public class GameplayPreviewState implements StateMethods {
             }
         } else if (activeOption == TemporaryRadialMenu.Option.CONSUMABLE) {
             consumablePanel.mouseMoved(point);
+        } else if (activeOption == TemporaryRadialMenu.Option.CONTACT_HELP && canAskHint()) {
+            hintButton.updateHover(point);
         }
     }
 
@@ -383,6 +415,12 @@ public class GameplayPreviewState implements StateMethods {
             }
         } else if (activeOption == TemporaryRadialMenu.Option.CONSUMABLE && pressed) {
             consumablePanel.mousePressed(point);
+        } else if (activeOption == TemporaryRadialMenu.Option.CONTACT_HELP && canAskHint()) {
+            if (pressed) {
+                hintButton.press(point);
+            } else {
+                hintButton.release(point);
+            }
         }
     }
 
@@ -432,10 +470,7 @@ public class GameplayPreviewState implements StateMethods {
         for (int index = 0; index < choiceButtons.length; index++) {
             choiceButtons[index].reset(answers[index]);
         }
-        if (activeOption != TemporaryRadialMenu.Option.CONSUMABLE
-                && activeOption != TemporaryRadialMenu.Option.CONTACT_HELP) {
-            radialMenu.select(TemporaryRadialMenu.Option.ANSWER);
-        }
+        radialMenu.clearSelection(); // every new question starts with nothing selected
     }
 
     private int correctIndex() {
@@ -468,6 +503,9 @@ public class GameplayPreviewState implements StateMethods {
             choiceButtons[index].setEnabled(false);
         }
         String answerLetter = String.valueOf("ABCD".charAt(correctIndex));
+        if (activeOption != TemporaryRadialMenu.Option.ANSWER) {
+            radialMenu.select(TemporaryRadialMenu.Option.ANSWER); // show the revealed answer
+        }
         resultMessage = reasonPrefix + (correct ? "Correct! " : "Wrong. Answer: " + answerLetter + ". ")
             + resolveTurn(correct) + " Click or press Enter to continue.";
     }
@@ -529,12 +567,7 @@ public class GameplayPreviewState implements StateMethods {
     // ------------------------------------------------------------------ radial options
 
     private void activateOption(TemporaryRadialMenu.Option option) {
-        if (option == null) {
-            // clicking the open option again closes it: fall back to the answer view
-            radialMenu.select(TemporaryRadialMenu.Option.ANSWER);
-            return;
-        }
-        activeOption = option;
+        activeOption = option; // null = nothing open
         // Switching menu options clears a pending pick, but must never unlock an answered question
         // (otherwise the player could lock a wrong answer, switch tabs, and answer again).
         if (option != TemporaryRadialMenu.Option.ANSWER && !answerLocked) {
@@ -542,9 +575,6 @@ public class GameplayPreviewState implements StateMethods {
             for (ChoiceButton choiceButton : choiceButtons) {
                 choiceButton.setSelected(false);
             }
-        }
-        if (option == TemporaryRadialMenu.Option.CONTACT_HELP) {
-            requestHint();
         }
         if (option != TemporaryRadialMenu.Option.CONSUMABLE) {
             consumablePanel.clearSelection();
@@ -554,8 +584,13 @@ public class GameplayPreviewState implements StateMethods {
         }
     }
 
+    private boolean canAskHint() {
+        return currentRound != null && !answerLocked && hintText == null && hintsLeft > 0 && gameResult == null;
+    }
+
+    /** Only runs when the player confirms with the ASK FOR A HINT button (opening the panel is free). */
     private void requestHint() {
-        if (currentRound == null || answerLocked || hintText != null || hintsLeft <= 0) {
+        if (!canAskHint()) {
             return;
         }
         hintsLeft--;
@@ -595,7 +630,7 @@ public class GameplayPreviewState implements StateMethods {
     }
 
     private void cancelAbandonQuestion() {
-        radialMenu.select(TemporaryRadialMenu.Option.ANSWER);
+        radialMenu.clearSelection();
     }
 
     // ------------------------------------------------------------------ consumables

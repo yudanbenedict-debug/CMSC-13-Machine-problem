@@ -30,8 +30,8 @@ public final class ParadigmLocked {
                 GameplayPreviewState gameplay = new GameplayPreviewState(stateManager, endScreen);
                 HowToPlayState howToPlay = new HowToPlayState(stateManager);
                 CreditsState credits = new CreditsState(stateManager);
-                howToPlay.setBackdrops(menu::drawBackground, gameplay::drawScene);
-                credits.setBackdrops(menu::drawBackground, gameplay::drawScene);
+                howToPlay.setBackdrops(menu::drawBackdrop, gameplay::drawScene);
+                credits.setBackdrops(menu::drawBackdrop, gameplay::drawScene);
                 stateManager.register(GameState.TITLE, new TitleState(stateManager));
                 stateManager.register(GameState.MENU, menu);
                 stateManager.register(GameState.PLAYING, gameplay);

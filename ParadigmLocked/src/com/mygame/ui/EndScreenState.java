@@ -8,6 +8,7 @@ import com.mygame.engine.core.StateMethods;
 import com.mygame.engine.helpers.constants.GameConstants;
 import com.mygame.engine.hud.UiFontManager;
 import com.mygame.engine.hud.UiText;
+import com.mygame.game.Faction;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Composite;
@@ -41,7 +42,7 @@ public final class EndScreenState implements StateMethods {
     }
 
     private String overlayKey() {
-        String side = GameConstants.PLAYER_SIDE_IMMUTABLE_MOTHER ? "IMMUTABLEMOTHER" : "DARKWEBKING";
+        String side = Faction.player().name();
         return "UI_OVERLAY_" + side + (won ? "_WIN" : "_LOSE");
     }
 

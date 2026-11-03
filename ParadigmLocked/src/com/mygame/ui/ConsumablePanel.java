@@ -12,6 +12,7 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.function.Predicate;
 
@@ -57,14 +58,15 @@ public final class ConsumablePanel {
 
     private static Rectangle rowBounds(int row) {
         Rectangle panel = panelBounds();
-        return new Rectangle(panel.x + 45, panel.y + 14 + row * GameConstants.CONSUMABLE_ROW_HEIGHT,
-            panel.width - 90, GameConstants.CONSUMABLE_ROW_HEIGHT);
+        // rows sit inside the two side ornaments of CONSUMABLE_BORDER
+        return new Rectangle(panel.x + 42, panel.y + 22 + row * GameConstants.CONSUMABLE_ROW_HEIGHT,
+            panel.width - 84, GameConstants.CONSUMABLE_ROW_HEIGHT);
     }
 
     private Rectangle discardBounds() {
         Rectangle row = rowBounds(Consumable.SCRIPTERS_SACRIFICE.ordinal());
         Rectangle panel = panelBounds();
-        return new Rectangle(panel.x + panel.width + 6, row.y + 16, 130, 36);
+        return new Rectangle(panel.x + panel.width + 6, row.y + 8, 120, 34);
     }
 
     private boolean discardVisible() {
@@ -73,18 +75,35 @@ public final class ConsumablePanel {
 
     public void draw(Graphics2D g) {
         Rectangle panel = panelBounds();
-        BufferedImage frame = AssetCache.get("CONSUMABLE_BORDER");
-        if (frame != null) {
-            g.drawImage(frame, panel.x, panel.y, panel.width, panel.height, null);
-        }
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        drawFrame(g, panel);
         for (int row = 0; row < ROWS.length; row++) {
             drawRow(g, row, ROWS[row]);
         }
         if (discardVisible()) {
             Rectangle bounds = discardBounds();
-            UiText.drawInBox(g, "DISCARD", UiFontManager.choices(24, Font.PLAIN), bounds,
+            UiText.drawInBox(g, "DISCARD", UiFontManager.dorris(20, Font.BOLD), bounds,
                 new Color(0xFA5555), discardHovered ? new Color(0xFA, 0x55, 0x55, 170) : null);
         }
+    }
+
+    /*
+        CONSUMABLE_BORDER is a square (390x390) image with an ornament on each side. Stretching it to the
+        wide panel squashed and blurred the ornaments, so each half is drawn with the SAME x/y scale
+        (no distortion, only downscaled = sharp) and pinned to the panel's left / right edge.
+     */
+    private static void drawFrame(Graphics2D g, Rectangle panel) {
+        BufferedImage frame = AssetCache.get("CONSUMABLE_BORDER");
+        if (frame == null) {
+            return;
+        }
+        int half = frame.getWidth() / 2;
+        double scale = panel.height / (double) frame.getHeight();
+        int drawnHalf = (int) Math.round(half * scale);
+        g.drawImage(frame, panel.x, panel.y, panel.x + drawnHalf, panel.y + panel.height,
+            0, 0, half, frame.getHeight(), null);
+        g.drawImage(frame, panel.x + panel.width - drawnHalf, panel.y, panel.x + panel.width, panel.y + panel.height,
+            half, 0, frame.getWidth(), frame.getHeight(), null);
     }
 
     private void drawRow(Graphics2D g, int row, Consumable consumable) {
@@ -97,8 +116,8 @@ public final class ConsumablePanel {
             g.drawImage(border, bounds.x, bounds.y, bounds.width, bounds.height, null);
         }
 
-        int iconSize = 56;
-        int iconY = bounds.y + 4;
+        int iconSize = 40;
+        int iconY = bounds.y + 6;
         BufferedImage icon = AssetCache.get(consumable.imageKey);
         if (icon != null) {
             java.awt.Composite old = g.getComposite();
@@ -112,12 +131,12 @@ public final class ConsumablePanel {
         Color color = available ? TEXT : DIM;
         Color glow = isSelected ? UiText.DEFAULT_GLOW
             : row == hoveredRow && available ? new Color(255, 236, 170, 140) : null;
-        float baseline = iconY + iconSize / 2f + 10;
-        UiText.draw(g, consumable.displayName, UiFontManager.choices(28, Font.PLAIN),
-            bounds.x + iconSize + 22, baseline, color, glow);
+        float baseline = iconY + iconSize / 2f + 7;
+        UiText.draw(g, consumable.displayName, UiFontManager.dorris(21, Font.BOLD),
+            bounds.x + iconSize + 18, baseline, color, glow);
 
         String amount = amountText(consumable);
-        Font amountFont = UiFontManager.luckiestGuy(24, Font.PLAIN);
+        Font amountFont = UiFontManager.luckiestGuy(20, Font.PLAIN);
         UiText.draw(g, amount, amountFont, bounds.x + bounds.width - 10 - UiText.width(amount, amountFont),
             baseline, available ? GOLD : DIM, null);
     }

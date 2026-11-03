@@ -5,6 +5,7 @@ import com.mygame.engine.core.AssetLoader;
 import com.mygame.engine.core.StateMethods;
 import com.mygame.engine.helpers.constants.GameConstants;
 import com.mygame.engine.hud.UiFontManager;
+import com.mygame.game.Faction;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -21,8 +22,10 @@ public final class LoadingState implements StateMethods {
     public LoadingState(Runnable completionAction) {
         this.assetLoader = new AssetLoader();
         this.completionAction = completionAction;
-        this.backgroundKey = ThreadLocalRandom.current().nextBoolean()
-            ? "UI_LOADING_BACKGROUND_1" : "UI_LOADING_BACKGROUND_2";
+        // the random loading art also picks your team: Dark Web King art = you are the King's team
+        Faction team = ThreadLocalRandom.current().nextBoolean() ? Faction.DARKWEBKING : Faction.IMMUTABLEMOTHER;
+        Faction.setPlayer(team);
+        this.backgroundKey = team.loadingBackgroundKey;
         AssetLoader.prepareLoadingScreenAssets();
     }
 

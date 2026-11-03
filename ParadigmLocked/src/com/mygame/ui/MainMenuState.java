@@ -43,7 +43,17 @@ public class MainMenuState implements StateMethods {
         quitButton.draw(g);
     }
 
-    /** Menu background + logo (also drawn behind the How to Play / Credits overlays). */
+    /** Menu background without the logo (drawn behind the How to Play / Credits overlays). */
+    public void drawBackdrop(Graphics2D g) {
+        BufferedImage background = AssetCache.get("UI_MAIN_MENU_BACKGROUND");
+        if (background != null) {
+            g.drawImage(background, 0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT, null);
+        } else {
+            TemporaryUiRenderer.drawScreenBackground(g);
+        }
+    }
+
+    /** Menu background + logo. */
     public void drawBackground(Graphics2D g) {
         BufferedImage background = AssetCache.get("UI_MAIN_MENU_BACKGROUND");
         if (background != null) {

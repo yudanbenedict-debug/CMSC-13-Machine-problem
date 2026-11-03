@@ -97,6 +97,8 @@ public final class TitleState implements StateMethods {
         }
         startedAt = elapsed;
         SoundManager.playSFX("UI_MENU_ONTITLESTART");
+        // from here on the menu theme sits lower so the menu button sounds stand out
+        SoundManager.setLevel("THEME_MAIN_MENU", GameConstants.MENU_MUSIC_DUCKED_LEVEL);
     }
 
     @Override public void mousePressed(MouseEvent event) { start(); }

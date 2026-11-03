@@ -62,7 +62,7 @@ public final class TemporaryUiRenderer {
 
     /** "Do you really wish to Abandon this question?" with "Abandon" in #fa5555. */
     public static void drawAbandonPrompt(Graphics2D g) {
-        Font font = UiFontManager.choices(34, Font.PLAIN);
+        Font font = UiFontManager.dorris(30, Font.BOLD);
         String before = "Do you really wish to ";
         String word = "Abandon";
         String after = " this question?";
@@ -76,7 +76,7 @@ public final class TemporaryUiRenderer {
             new Color(0xFA, 0x55, 0x55, 160));
         x += UiText.width(word, font);
         UiText.draw(g, after, font, x, baseline, TEXT);
-        UiText.drawCentered(g, "Abandoning counts as a wrong answer.", UiFontManager.choices(18, Font.PLAIN),
+        UiText.drawCentered(g, "Abandoning counts as a wrong answer.", UiFontManager.dorris(17, Font.BOLD),
             GameConstants.TEMPORARY_GAMEPLAY_CHOICES_PANEL_X
                 + GameConstants.TEMPORARY_GAMEPLAY_CHOICES_PANEL_WIDTH / 2f,
             baseline + 36, new Color(190, 190, 190), null);

@@ -6,7 +6,6 @@ import java.util.List;
 public class CreditsState extends InfoState {
     public CreditsState(GameStateManager stateManager) {
         super(stateManager, "CREDITS", List.of(
-            InfoBlock.image("UI_MAIN_MENU_LOGO", 110, null),
             InfoBlock.heading("Created By"),
             InfoBlock.body("Francis Kyle A.S."),
             InfoBlock.body("Dan Benedict G.Y."),
