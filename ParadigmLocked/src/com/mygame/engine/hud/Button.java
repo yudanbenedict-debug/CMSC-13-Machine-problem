@@ -1,6 +1,7 @@
 package com.mygame.engine.hud;
 
 import com.mygame.engine.core.AssetCache;
+import com.mygame.engine.core.SoundManager;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -35,29 +36,22 @@ public class Button {
         BufferedImage image = assetKey == null ? null : AssetCache.get(assetKey);
         if (image != null) {
             g.drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height, null);
-            g.setColor(Color.WHITE);
-            g.setFont(UiFontManager.dorris(22, Font.BOLD));
-            int textWidth = g.getFontMetrics().stringWidth(label);
-            int textY = bounds.y + (bounds.height - g.getFontMetrics().getHeight()) / 2
-                    + g.getFontMetrics().getAscent();
-            g.drawString(label, bounds.x + (bounds.width - textWidth) / 2, textY);
-            return;
+        } else if (backgroundVisible && label != null) {
+            TemporaryUiRenderer.drawButton(g, bounds, "", hovered, pressed, enabled);
         }
-
-        if (backgroundVisible) {
-            TemporaryUiRenderer.drawButton(g, bounds, label, hovered, pressed, enabled);
-        } else {
-            g.setColor(enabled ? Color.WHITE : new Color(160, 160, 160));
-            g.setFont(UiFontManager.dorris(22, Font.BOLD));
-            int textWidth = g.getFontMetrics().stringWidth(label);
-            int textY = bounds.y + (bounds.height - g.getFontMetrics().getHeight()) / 2
-                    + g.getFontMetrics().getAscent();
-            g.drawString(label, bounds.x + (bounds.width - textWidth) / 2, textY);
+        if (label != null && !label.isEmpty()) {
+            Color color = enabled ? Color.WHITE : new Color(160, 160, 160);
+            UiText.drawInBox(g, label, UiFontManager.dorris(22, Font.BOLD), bounds, color,
+                hovered ? UiText.DEFAULT_GLOW : null);
         }
     }
 
     public void updateHover(Point logicalPoint) {
-        hovered = enabled && bounds.contains(logicalPoint);
+        boolean nowHovered = enabled && bounds.contains(logicalPoint);
+        if (nowHovered && !hovered) {
+            SoundManager.playMenuHover();
+        }
+        hovered = nowHovered;
     }
 
     public void press(Point logicalPoint) {
@@ -78,6 +72,10 @@ public class Button {
 
     public boolean isHovered() {
         return hovered;
+    }
+
+    public boolean isPressed() {
+        return pressed;
     }
 
     public void setEnabled(boolean enabled) {

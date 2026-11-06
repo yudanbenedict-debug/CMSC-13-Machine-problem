@@ -25,14 +25,18 @@ public final class GameConstants {
     //pause menu context
     //title font size = game paused
     //pause volume = png bar
-    public static final int PAUSE_TITLE_FONT_SIZE = 90;
-    public static final int PAUSE_OPTION_START_Y = 300;
-    public static final int PAUSE_OPTION_SPACING = 70;
-    public static final int PAUSE_VOLUME_X = 540;
-    public static final int PAUSE_VOLUME_Y = 550;
-    public static final int PAUSE_VOLUME_WIDTH = 200;
+    public static final int PAUSE_TITLE_FONT_SIZE = 104;
+    public static final int PAUSE_TITLE_GAME_BASELINE = 232;
+    public static final int PAUSE_TITLE_PAUSED_BASELINE = 328;
+    public static final int PAUSE_OPTION_START_Y = 408;
+    public static final int PAUSE_OPTION_SPACING = 50;
+    // keeps the PNG's 10:3 ratio
+    public static final int PAUSE_VOLUME_WIDTH = 267;
     public static final int PAUSE_VOLUME_HEIGHT = 80;
-    public static final int PAUSE_VOLUME_ICON_WIDTH = 10;
+    public static final int PAUSE_VOLUME_X = (LOGICAL_WIDTH - PAUSE_VOLUME_WIDTH) / 2;
+    public static final int PAUSE_VOLUME_Y = 546;
+    // speaker icon (mute toggle) width
+    public static final int PAUSE_VOLUME_ICON_WIDTH = PAUSE_VOLUME_WIDTH * 24 / 100;
 
     public static final int TEMPORARY_MENU_BUTTON_X = 100;
     public static final int TEMPORARY_MENU_BUTTON_WIDTH = 330;
@@ -45,33 +49,29 @@ public final class GameConstants {
     public static final int TEMPORARY_INFO_BUTTON_WIDTH = 250;
     public static final int TEMPORARY_INFO_BUTTON_HEIGHT = 64;
 
-    public static final int TEMPORARY_GAMEPLAY_TOP_PANEL_X = 400;
-    public static final int TEMPORARY_GAMEPLAY_TOP_PANEL_Y = 35;
-    public static final int TEMPORARY_GAMEPLAY_TOP_PANEL_WIDTH = 830;
-    public static final int TEMPORARY_GAMEPLAY_TOP_PANEL_HEIGHT = 65;
     public static final int TEMPORARY_GAMEPLAY_PANEL_X = 400;
-    public static final int TEMPORARY_GAMEPLAY_PANEL_Y = 120;
+    public static final int TEMPORARY_GAMEPLAY_PANEL_Y = 115;
     public static final int TEMPORARY_GAMEPLAY_PANEL_WIDTH = 830;
-    public static final int TEMPORARY_GAMEPLAY_PANEL_HEIGHT = 300;
+    public static final int TEMPORARY_GAMEPLAY_PANEL_HEIGHT = 275;
     public static final int TEMPORARY_GAMEPLAY_CHOICES_PANEL_X = 400;
-    public static final int TEMPORARY_GAMEPLAY_CHOICES_PANEL_Y = 440;
+    public static final int TEMPORARY_GAMEPLAY_CHOICES_PANEL_Y = 415;
     public static final int TEMPORARY_GAMEPLAY_CHOICES_PANEL_WIDTH = 830;
-    public static final int TEMPORARY_GAMEPLAY_CHOICES_PANEL_HEIGHT = 245;
-    public static final int TEMPORARY_GAMEPLAY_CHOICE_WIDTH = 350;
-    public static final int TEMPORARY_GAMEPLAY_CHOICE_HEIGHT = 65;
-    public static final int TEMPORARY_GAMEPLAY_CHOICE_LEFT_X = 430;
+    public static final int TEMPORARY_GAMEPLAY_CHOICES_PANEL_HEIGHT = 290;
+    public static final int TEMPORARY_GAMEPLAY_CHOICE_WIDTH = 400;
+    public static final int TEMPORARY_GAMEPLAY_CHOICE_HEIGHT = 118;
+    public static final int TEMPORARY_GAMEPLAY_CHOICE_LEFT_X = 410;
     public static final int TEMPORARY_GAMEPLAY_CHOICE_RIGHT_X = 830;
-    public static final int TEMPORARY_GAMEPLAY_CHOICE_TOP_Y = 485;
-    public static final int TEMPORARY_GAMEPLAY_CHOICE_BOTTOM_Y = 575;
-    public static final int TEMPORARY_GAMEPLAY_CHOICE_TEXT_WIDTH = 285;
+    public static final int TEMPORARY_GAMEPLAY_CHOICE_TOP_Y = 428;
+    public static final int TEMPORARY_GAMEPLAY_CHOICE_BOTTOM_Y = 556;
+    public static final int TEMPORARY_GAMEPLAY_CHOICE_TEXT_WIDTH = 340;
     public static final int TEMPORARY_ABANDON_CHOICE_WIDTH = 190;
     public static final int TEMPORARY_ABANDON_CHOICE_HEIGHT = 55;
     public static final int TEMPORARY_ABANDON_CHOICE_LEFT_X = 590;
     public static final int TEMPORARY_ABANDON_CHOICE_RIGHT_X = 850;
-    public static final int TEMPORARY_ABANDON_CHOICE_Y = 610;
-    public static final int TEMPORARY_GAMEPLAY_QUESTION_TEXT_X = 435;
-    public static final int TEMPORARY_GAMEPLAY_QUESTION_TEXT_Y = 180;
-    public static final int TEMPORARY_GAMEPLAY_QUESTION_TEXT_WIDTH = 760;
+    public static final int TEMPORARY_ABANDON_CHOICE_Y = 560;
+    public static final int TEMPORARY_GAMEPLAY_QUESTION_TEXT_X = 420;
+    public static final int TEMPORARY_GAMEPLAY_QUESTION_TEXT_Y = 130;
+    public static final int TEMPORARY_GAMEPLAY_QUESTION_TEXT_WIDTH = 800;
     public static final int TEMPORARY_GAMEPLAY_ACTION_Y = 550;
     public static final int TEMPORARY_GAMEPLAY_ACTION_WIDTH = 250;
     public static final int TEMPORARY_GAMEPLAY_ACTION_HEIGHT = 64;
@@ -80,10 +80,6 @@ public final class GameConstants {
     public static final int TEMPORARY_GAMEPLAY_SKIP_X = 620;
     public static final int TEMPORARY_GAMEPLAY_CONSUMABLE_X = 890;
     public static final int TEMPORARY_GAMEPLAY_CONSUMABLE_WIDTH = 300;
-    public static final int TEMPORARY_GAMEPLAY_MENU_X = 1000;
-    public static final int TEMPORARY_GAMEPLAY_MENU_Y = 40;
-    public static final int TEMPORARY_GAMEPLAY_MENU_WIDTH = 180;
-    public static final int TEMPORARY_GAMEPLAY_MENU_HEIGHT = 48;
 
     // Move radial menu left or right (pixels)
     public static final int TEMPORARY_RADIAL_CENTER_X = -30;
@@ -101,7 +97,48 @@ public final class GameConstants {
     public static final int TEMPORARY_MENU_LOGO_X = (LOGICAL_WIDTH - 620) / 2;
     public static final int TEMPORARY_MENU_LOGO_Y = 45;
     public static final int TEMPORARY_MENU_LOGO_WIDTH = 620;
-    public static final int TEMPORARY_MENU_LOGO_HEIGHT = 124;
+    public static final int TEMPORARY_MENU_LOGO_HEIGHT = TEMPORARY_MENU_LOGO_WIDTH * 300 / 1000; // keeps the PNG's 1000x300 ratio
+
+    public static final int TEMPORARY_GAMEPLAY_QUESTION_TEXT_HEIGHT = 250;
+
+    public static final int PAUSE_BUTTON_X = 18;
+    public static final int PAUSE_BUTTON_Y = 18;
+    public static final int PAUSE_BUTTON_SIZE = 56;
+    public static final int HUD_NODE_STATUS_X = 92;
+    public static final int HUD_NODE_STATUS_Y = 16;
+    public static final int HUD_TIMER_CENTER_X = 727;
+    public static final int MINIMAP_X = 985;
+    public static final int MINIMAP_Y = 12;
+    public static final int MINIMAP_WIDTH = 275;
+    public static final int MINIMAP_HEIGHT = 92;
+    public static final int STATUS_MESSAGE_Y = 404;
+
+    public static final double QUESTION_TIME_SECONDS = 60.0;
+    public static final int SCORE_CORRECT = 100;
+    public static final int SCORE_TIME_BONUS_PER_SECOND = 2;
+    public static final int SCORE_WRONG_PENALTY = 50;
+    public static final int DYNAMO_HINT_USES = 3;
+    public static final double CONSUMABLE_DROP_CHANCE = 0.35;
+    public static final int SCRIPTERS_SACRIFICE_SAFE_USES = 2;
+    public static final double END_SCREEN_DELAY_SECONDS = 1.2;
+    // pre-game briefing (timer paused)
+    public static final double BRIEFING_SECONDS = 8.0;
+    public static final double BRIEFING_MIN_SECONDS = 0.6;   // can't be skipped before this
+    public static final double BRIEFING_FADE_SECONDS = 0.5;
+    public static final double END_SCREEN_SECONDS = 6.0;
+
+    public static final int CONSUMABLE_PANEL_X = 590;
+    public static final int CONSUMABLE_PANEL_Y = 425;
+    public static final int CONSUMABLE_PANEL_WIDTH = 460;
+    public static final int CONSUMABLE_PANEL_HEIGHT = 270;
+    public static final int CONSUMABLE_ROW_HEIGHT = 72;
+
+    public static final float MUSIC_VOLUME_LEVEL = 0.35f;
+    // menu theme after the title screen
+    public static final float MENU_MUSIC_DUCKED_LEVEL = 0.18f;
+    public static final float SFX_VOLUME_LEVEL = 0.8f;          // all sound effects -20%
+    public static final float HINT_PROMPT_VOLUME_LEVEL = 0.6f;  // hint prompt -40%
+    public static final float RADIAL_HOVER_VOLUME_LEVEL = 0.4f; // radial hover at 40%
 
     private GameConstants() {
     }

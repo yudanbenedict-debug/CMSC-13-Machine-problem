@@ -6,6 +6,7 @@ package com.mygame.engine.core;
 
 public enum GameState {
   LOADING,
+    TITLE, // "press any key" title intro between loading and the main menu
     MENU,
     CREDITS,
     HOWTOPLAY, 

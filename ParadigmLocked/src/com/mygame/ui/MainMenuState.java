@@ -3,7 +3,9 @@ package com.mygame.ui;
 import com.mygame.engine.core.AssetCache;
 import com.mygame.engine.core.GameState;
 import com.mygame.engine.core.GameStateManager;
+import com.mygame.engine.core.SoundManager;
 import com.mygame.engine.core.StateMethods;
+import com.mygame.engine.helpers.algorithms.EasingMethods;
 import com.mygame.engine.helpers.constants.GameConstants;
 import com.mygame.engine.hud.Button;
 import com.mygame.engine.hud.TemporaryUiRenderer;
@@ -19,6 +21,7 @@ public class MainMenuState implements StateMethods {
     private final Button howToPlayButton;
     private final Button creditsButton;
     private final Button quitButton;
+    private double buttonsFade = 1;
 
     public MainMenuState(GameStateManager stateManager) {
         this.stateManager = stateManager;
@@ -35,6 +38,29 @@ public class MainMenuState implements StateMethods {
 
     @Override
     public void draw(Graphics2D g) {
+        drawBackground(g);
+        // buttons fade in when coming from the title screen
+        java.awt.Composite old = g.getComposite();
+        float alpha = (float) EasingMethods.easeIn(Math.min(1, buttonsFade));
+        g.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, alpha));
+        startButton.draw(g);
+        howToPlayButton.draw(g);
+        creditsButton.draw(g);
+        quitButton.draw(g);
+        g.setComposite(old);
+    }
+
+    // Menu background without the logo (behind How to Play / Credits).
+    public void drawBackdrop(Graphics2D g) {
+        BufferedImage background = AssetCache.get("UI_MAIN_MENU_BACKGROUND");
+        if (background != null) {
+            g.drawImage(background, 0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT, null);
+        } else {
+            TemporaryUiRenderer.drawScreenBackground(g);
+        }
+    }
+
+    public void drawBackground(Graphics2D g) {
         BufferedImage background = AssetCache.get("UI_MAIN_MENU_BACKGROUND");
         if (background != null) {
             g.drawImage(background, 0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT, null);
@@ -56,14 +82,15 @@ public class MainMenuState implements StateMethods {
         //     g.setColor(new Color(154, 201, 193));
         //     g.drawString("ASCEND, PROGRAMMER!", 104, 195);
         // }
-        startButton.draw(g);
-        howToPlayButton.draw(g);
-        creditsButton.draw(g);
-        quitButton.draw(g);
     }
 
-    @Override public void update(double dt) { }
-    @Override public void onEnter() { }
+    @Override public void update(double dt) { buttonsFade = Math.min(1, buttonsFade + dt / 0.7); }
+
+    @Override
+    public void onEnter() {
+        SoundManager.playMusic("THEME_MAIN_MENU");
+        buttonsFade = stateManager.getPreviousState() == GameState.TITLE ? 0 : 1;
+    }
     @Override public void onExit() { }
     @Override public void mousePressed(MouseEvent event) { updatePressed(event, true); }
     @Override public void mouseReleased(MouseEvent event) { updatePressed(event, false); }
