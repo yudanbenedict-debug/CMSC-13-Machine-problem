@@ -15,7 +15,7 @@ public class Question {
     public final String optionD;
   
 
-    public String correctAnswer;
+    public final String correctAnswer;
     public Question(String id, String category, String moduleOrLanguage, String questionType,
                     String label, String question, String optionA, String optionB,
                     String optionC, String optionD, String correctAnswer) {

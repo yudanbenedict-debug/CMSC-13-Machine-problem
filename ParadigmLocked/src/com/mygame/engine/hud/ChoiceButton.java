@@ -1,6 +1,5 @@
 package com.mygame.engine.hud;
 
-import com.mygame.engine.core.SoundManager;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -12,7 +11,7 @@ public class ChoiceButton {
     private final String label;
     private String text;
     private final Runnable action;
-    private boolean hovered;
+    private final Hover hover = new Hover();
     private boolean pressed;
     private boolean selected;
     private boolean enabled = true;
@@ -28,15 +27,11 @@ public class ChoiceButton {
     }
 
     public void draw(Graphics2D g) {
-        TemporaryUiRenderer.drawChoice(g, label, text, bounds, hovered, selected, nullified, result);
+        UiRenderer.drawChoice(g, label, text, bounds, hover.isHovered(), selected, nullified, result);
     }
 
     public void updateHover(Point logicalPoint) {
-        boolean nowHovered = enabled && !nullified && bounds.contains(logicalPoint);
-        if (nowHovered && !hovered) {
-            SoundManager.playMenuHover();
-        }
-        hovered = nowHovered;
+        hover.update(enabled && !nullified && bounds.contains(logicalPoint));
     }
 
     public void press(Point logicalPoint) {
@@ -51,9 +46,6 @@ public class ChoiceButton {
         }
     }
 
-    public void setText(String text) {
-        this.text = text;
-    }
 
     public void setSelected(boolean selected) {
         this.selected = selected;
@@ -67,15 +59,12 @@ public class ChoiceButton {
     public void setNullified(boolean nullified) {
         this.nullified = nullified;
         if (nullified) {
-            hovered = false;
+            hover.clear();
             pressed = false;
             selected = false;
         }
     }
 
-    public boolean isNullified() {
-        return nullified;
-    }
 
     public void setResult(Result result) {
         this.result = result;
@@ -92,13 +81,13 @@ public class ChoiceButton {
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
         if (!enabled) {
-            hovered = false;
+            hover.clear();
             pressed = false;
         }
     }
 
     public boolean isHovered() {
-        return hovered;
+        return hover.isHovered();
     }
 
     public String getText() {
@@ -110,7 +99,7 @@ public class ChoiceButton {
     }
 
     public boolean needsPreview() {
-        return !nullified && TemporaryUiRenderer.isChoiceTruncated(text, bounds);
+        return !nullified && UiRenderer.isChoiceTruncated(text, bounds);
     }
 
     public Rectangle getBounds() {

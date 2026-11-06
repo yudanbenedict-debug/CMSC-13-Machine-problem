@@ -1,7 +1,9 @@
 package com.mygame.ui;
 
 import com.mygame.engine.core.AssetCache;
+import com.mygame.engine.core.Img;
 import com.mygame.engine.helpers.constants.GameConstants;
+import com.mygame.engine.helpers.constants.UiLayout;
 import com.mygame.engine.hud.UiFontManager;
 import com.mygame.engine.hud.UiText;
 import java.awt.BasicStroke;
@@ -52,13 +54,13 @@ public final class OverlayMenuRenderer {
     }
 
     private static int contentX() {
-        return GameConstants.OVERLAY_MENU_CONTENT_X;
+        return UiLayout.OVERLAY_CONTENT_X;
     }
 
     private static int contentWidth() {
-        return GameConstants.OVERLAY_MENU_WIDTH
-            - (GameConstants.OVERLAY_MENU_CONTENT_X - GameConstants.OVERLAY_MENU_X) * 2
-            - GameConstants.OVERLAY_MENU_SCROLLBAR_RIGHT_INSET;
+        return UiLayout.OVERLAY_WIDTH
+            - (UiLayout.OVERLAY_CONTENT_X - UiLayout.OVERLAY_X) * 2
+            - UiLayout.OVERLAY_SCROLLBAR_RIGHT_INSET;
     }
 
     private static Font fontFor(InfoBlock.Kind kind) {
@@ -110,7 +112,7 @@ public final class OverlayMenuRenderer {
 
     public static void drawInfoOverlay(Graphics2D graphics, String title, List<InfoBlock> blocks,
                                        double scroll, boolean backHovered) {
-        drawFrame(graphics, "UI_OVERLAY_MENU_DEFAULT");
+        drawFrame(graphics, Img.OVERLAY_MENU_DEFAULT);
         UiText.drawCentered(graphics, title.toUpperCase(), UiFontManager.arpona(42, Font.BOLD),
             GameConstants.LOGICAL_WIDTH / 2f, 155, TEXT, null);
         drawScrollableBody(graphics, blocks, scroll);
@@ -118,15 +120,15 @@ public final class OverlayMenuRenderer {
     }
 
     public static double scroll(double current, double wheelRotation, List<InfoBlock> blocks) {
-        int viewportHeight = GameConstants.OVERLAY_MENU_CONTENT_BOTTOM - GameConstants.OVERLAY_MENU_CONTENT_TOP;
+        int viewportHeight = UiLayout.OVERLAY_CONTENT_BOTTOM - UiLayout.OVERLAY_CONTENT_TOP;
         double maxScroll = Math.max(0, layout(blocks).height - viewportHeight);
         return Math.max(0, Math.min(maxScroll, current + wheelRotation * 40));
     }
 
     private static void drawScrollableBody(Graphics2D graphics, List<InfoBlock> blocks, double scroll) {
         Layout layout = layout(blocks);
-        int contentTop = GameConstants.OVERLAY_MENU_CONTENT_TOP;
-        int contentBottom = GameConstants.OVERLAY_MENU_CONTENT_BOTTOM;
+        int contentTop = UiLayout.OVERLAY_CONTENT_TOP;
+        int contentBottom = UiLayout.OVERLAY_CONTENT_BOTTOM;
         int viewportHeight = contentBottom - contentTop;
         float centerX = GameConstants.LOGICAL_WIDTH / 2f;
 
@@ -138,7 +140,7 @@ public final class OverlayMenuRenderer {
                 continue;
             }
             if (item.block.kind == InfoBlock.Kind.IMAGE) {
-                BufferedImage image = AssetCache.get(item.block.imageKey);
+                BufferedImage image = AssetCache.get(item.block.image);
                 if (image != null) {
                     int height = item.block.height;
                     int width = image.getWidth() * height / image.getHeight();
@@ -165,12 +167,12 @@ public final class OverlayMenuRenderer {
         if (contentHeight > viewportHeight) {
             int trackX = contentX() + contentWidth() + 14;
             graphics.setColor(new Color(246, 242, 229, 100));
-            graphics.fillRect(trackX, contentTop, GameConstants.OVERLAY_MENU_SCROLLBAR_WIDTH, viewportHeight);
+            graphics.fillRect(trackX, contentTop, UiLayout.OVERLAY_SCROLLBAR_WIDTH, viewportHeight);
             int thumbHeight = Math.max(30, viewportHeight * viewportHeight / contentHeight);
             int thumbY = contentTop + (int) ((viewportHeight - thumbHeight)
                 * (scroll / (contentHeight - viewportHeight)));
             graphics.setColor(ACCENT);
-            graphics.fillRect(trackX, thumbY, GameConstants.OVERLAY_MENU_SCROLLBAR_WIDTH, thumbHeight);
+            graphics.fillRect(trackX, thumbY, UiLayout.OVERLAY_SCROLLBAR_WIDTH, thumbHeight);
         }
     }
 
@@ -185,19 +187,19 @@ public final class OverlayMenuRenderer {
 
     public static Rectangle getBackBounds() {
         return new Rectangle(
-            (GameConstants.LOGICAL_WIDTH - GameConstants.OVERLAY_MENU_BACK_WIDTH) / 2,
-            GameConstants.OVERLAY_MENU_BACK_Y,
-            GameConstants.OVERLAY_MENU_BACK_WIDTH,
-            GameConstants.OVERLAY_MENU_BACK_HEIGHT);
+            (GameConstants.LOGICAL_WIDTH - UiLayout.OVERLAY_BACK_WIDTH) / 2,
+            UiLayout.OVERLAY_BACK_Y,
+            UiLayout.OVERLAY_BACK_WIDTH,
+            UiLayout.OVERLAY_BACK_HEIGHT);
     }
 
     public static void drawPauseOverlay(Graphics2D graphics, int hoveredOption, double volume,
                                         boolean muted, boolean muteHovered) {
-        drawFrame(graphics, "UI_OVERLAY_MENU_PAUSE");
-        Font titleFont = UiFontManager.arpona(GameConstants.PAUSE_TITLE_FONT_SIZE, Font.BOLD);
+        drawFrame(graphics, Img.OVERLAY_MENU_PAUSE);
+        Font titleFont = UiFontManager.arpona(UiLayout.PAUSE_TITLE_FONT_SIZE, Font.BOLD);
         float centerX = GameConstants.LOGICAL_WIDTH / 2f;
-        UiText.drawCentered(graphics, "GAME", titleFont, centerX, GameConstants.PAUSE_TITLE_GAME_BASELINE, TEXT, null);
-        UiText.drawCentered(graphics, "PAUSED", titleFont, centerX, GameConstants.PAUSE_TITLE_PAUSED_BASELINE, TEXT, null);
+        UiText.drawCentered(graphics, "GAME", titleFont, centerX, UiLayout.PAUSE_TITLE_GAME_BASELINE, TEXT, null);
+        UiText.drawCentered(graphics, "PAUSED", titleFont, centerX, UiLayout.PAUSE_TITLE_PAUSED_BASELINE, TEXT, null);
 
         String[] labels = {"CONTINUE", "HOW TO PLAY", "BACK TO MENU"};
         for (int index = 0; index < labels.length; index++) {
@@ -208,26 +210,26 @@ public final class OverlayMenuRenderer {
 
     public static Rectangle getPauseOptionBounds(int index) {
         return centeredBounds(GameConstants.LOGICAL_WIDTH / 2,
-            GameConstants.PAUSE_OPTION_START_Y + GameConstants.PAUSE_OPTION_SPACING * index);
+            UiLayout.PAUSE_OPTION_START_Y + UiLayout.PAUSE_OPTION_SPACING * index);
     }
 
     public static Rectangle getPauseVolumeBounds() {
-        return new Rectangle(GameConstants.PAUSE_VOLUME_X, GameConstants.PAUSE_VOLUME_Y,
-            GameConstants.PAUSE_VOLUME_WIDTH, GameConstants.PAUSE_VOLUME_HEIGHT);
+        return new Rectangle(UiLayout.PAUSE_VOLUME_X, UiLayout.PAUSE_VOLUME_Y,
+            UiLayout.PAUSE_VOLUME_WIDTH, UiLayout.PAUSE_VOLUME_HEIGHT);
     }
 
     public static Rectangle getPauseMuteBounds() {
         Rectangle volumeBounds = getPauseVolumeBounds();
         return new Rectangle(volumeBounds.x, volumeBounds.y,
-            GameConstants.PAUSE_VOLUME_ICON_WIDTH, volumeBounds.height);
+            UiLayout.PAUSE_VOLUME_ICON_WIDTH, volumeBounds.height);
     }
 
     public static int volumeTrackStart() {
-        return GameConstants.PAUSE_VOLUME_X + GameConstants.PAUSE_VOLUME_ICON_WIDTH;
+        return UiLayout.PAUSE_VOLUME_X + UiLayout.PAUSE_VOLUME_ICON_WIDTH;
     }
 
     public static int volumeTrackEnd() {
-        return GameConstants.PAUSE_VOLUME_X + Math.round(GameConstants.PAUSE_VOLUME_WIDTH * 475f / 500f);
+        return UiLayout.PAUSE_VOLUME_X + Math.round(UiLayout.PAUSE_VOLUME_WIDTH * 475f / 500f);
     }
 
     private static void drawVolumeBar(Graphics2D graphics, double volume, boolean muted, boolean muteHovered) {
@@ -246,9 +248,9 @@ public final class OverlayMenuRenderer {
                 (int) Math.ceil(fillEnd - (bounds.x + 25 * sx)), bounds.height));
             clipped.dispose();
         }
-        BufferedImage frame = AssetCache.get(muted ? "UI_PAUSE_VOLUME_BAR" : "UI_PAUSE_AUDIOBAR_ACTIVE");
+        BufferedImage frame = AssetCache.get(muted ? Img.PAUSE_VOLUME_BAR : Img.PAUSE_AUDIOBAR_ACTIVE);
         if (frame == null) {
-            frame = AssetCache.get("UI_PAUSE_VOLUME_BAR");
+            frame = AssetCache.get(Img.PAUSE_VOLUME_BAR);
         }
         if (frame != null) {
             graphics.drawImage(frame, bounds.x, bounds.y, bounds.width, bounds.height, null);
@@ -268,11 +270,11 @@ public final class OverlayMenuRenderer {
         }
     }
 
-    private static void drawFrame(Graphics2D graphics, String assetKey) {
-        BufferedImage frame = AssetCache.get(assetKey);
+    private static void drawFrame(Graphics2D graphics, Img frameImage) {
+        BufferedImage frame = AssetCache.getScaled(frameImage,
+            UiLayout.OVERLAY_WIDTH, UiLayout.OVERLAY_HEIGHT);
         if (frame != null) {
-            graphics.drawImage(frame, GameConstants.OVERLAY_MENU_X, GameConstants.OVERLAY_MENU_Y,
-                GameConstants.OVERLAY_MENU_WIDTH, GameConstants.OVERLAY_MENU_HEIGHT, null);
+            graphics.drawImage(frame, UiLayout.OVERLAY_X, UiLayout.OVERLAY_Y, null);
         }
     }
 

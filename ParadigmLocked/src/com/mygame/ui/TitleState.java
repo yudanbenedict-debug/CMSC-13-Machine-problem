@@ -3,11 +3,13 @@ package com.mygame.ui;
 import com.mygame.engine.core.AssetCache;
 import com.mygame.engine.core.GameState;
 import com.mygame.engine.core.GameStateManager;
+import com.mygame.engine.core.Img;
+import com.mygame.engine.core.Sfx;
 import com.mygame.engine.core.SoundManager;
 import com.mygame.engine.core.StateMethods;
 import com.mygame.engine.helpers.algorithms.EasingMethods;
 import com.mygame.engine.helpers.constants.GameConstants;
-import com.mygame.engine.hud.TemporaryUiRenderer;
+import com.mygame.engine.helpers.constants.UiLayout;
 import com.mygame.engine.hud.UiFontManager;
 import com.mygame.engine.hud.UiText;
 import java.awt.Color;
@@ -34,7 +36,7 @@ public final class TitleState implements StateMethods {
     public void onEnter() {
         elapsed = 0;
         startedAt = -1;
-        SoundManager.playMusic("THEME_MAIN_MENU");
+        SoundManager.playMusic(Sfx.THEME_MAIN_MENU);
     }
 
     @Override public void onExit() { }
@@ -49,25 +51,20 @@ public final class TitleState implements StateMethods {
 
     @Override
     public void draw(Graphics2D g) {
-        BufferedImage background = AssetCache.get("UI_MAIN_MENU_BACKGROUND");
-        if (background != null) {
-            g.drawImage(background, 0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT, null);
-        } else {
-            TemporaryUiRenderer.drawScreenBackground(g);
-        }
+        MainMenuState.drawCircuit(g);
         double transition = startedAt < 0 ? 0 : Math.min(1, (elapsed - startedAt) / START_TRANSITION_SECONDS);
         double eased = EasingMethods.smoothStep(transition);
         g.setColor(new Color(0, 0, 0, (int) (150 * (1 - eased))));
         g.fillRect(0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT);
 
-        BufferedImage logo = AssetCache.get("UI_MAIN_MENU_LOGO");
+        BufferedImage logo = AssetCache.get(Img.MAIN_MENU_LOGO);
         if (logo != null) {
             float alpha = (float) EasingMethods.smoothStep(elapsed / LOGO_FADE_SECONDS);
             double scale = 1.35 - 0.35 * eased;
-            int width = (int) (GameConstants.TEMPORARY_MENU_LOGO_WIDTH * scale);
-            int height = (int) (GameConstants.TEMPORARY_MENU_LOGO_HEIGHT * scale);
+            int width = (int) (UiLayout.MENU_LOGO_WIDTH * scale);
+            int height = (int) (UiLayout.MENU_LOGO_HEIGHT * scale);
             int startY = 230;
-            int y = (int) (startY + (GameConstants.TEMPORARY_MENU_LOGO_Y - startY) * eased);
+            int y = (int) (startY + (UiLayout.MENU_LOGO_Y - startY) * eased);
             java.awt.Composite old = g.getComposite();
             g.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, alpha));
             g.drawImage(logo, (GameConstants.LOGICAL_WIDTH - width) / 2, y, width, height, null);
@@ -101,9 +98,9 @@ public final class TitleState implements StateMethods {
             return;
         }
         startedAt = elapsed;
-        SoundManager.playSFX("UI_MENU_ONTITLESTART");
+        SoundManager.playSFX(Sfx.UI_MENU_ONTITLESTART);
         // quieter menu theme from here on
-        SoundManager.setLevel("THEME_MAIN_MENU", GameConstants.MENU_MUSIC_DUCKED_LEVEL);
+        SoundManager.setLevel(Sfx.THEME_MAIN_MENU, GameConstants.MENU_MUSIC_DUCKED_LEVEL);
     }
 
     @Override public void mousePressed(MouseEvent event) { start(); }

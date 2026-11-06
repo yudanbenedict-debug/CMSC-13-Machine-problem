@@ -3,6 +3,8 @@ package com.mygame.ui;
 import com.mygame.engine.core.AssetCache;
 import com.mygame.engine.core.GameState;
 import com.mygame.engine.core.GameStateManager;
+import com.mygame.engine.core.Img;
+import com.mygame.engine.core.Sfx;
 import com.mygame.engine.core.SoundManager;
 import com.mygame.engine.core.StateMethods;
 import com.mygame.engine.helpers.constants.GameConstants;
@@ -37,16 +39,15 @@ public final class EndScreenState implements StateMethods {
         this.backdrop = backdrop;
     }
 
-    private String overlayKey() {
-        String side = Faction.player().name();
-        return "UI_OVERLAY_" + side + (won ? "_WIN" : "_LOSE");
+    private Img overlay() {
+        return won ? Faction.player().winOverlay : Faction.player().loseOverlay;
     }
 
     @Override
     public void onEnter() {
         elapsed = 0;
         SoundManager.stopAllMusic();
-        SoundManager.playSFX(won ? "GAME_WON" : "GAME_LOST");
+        SoundManager.playSFX(won ? Sfx.GAME_WON : Sfx.GAME_LOST);
     }
 
     @Override public void onExit() { }
@@ -69,7 +70,8 @@ public final class EndScreenState implements StateMethods {
         g.fillRect(0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT);
         Composite old = g.getComposite();
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, fade));
-        BufferedImage overlay = AssetCache.get(overlayKey());
+        BufferedImage overlay = AssetCache.getScaled(overlay(),
+            GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT);
         if (overlay != null) {
             g.drawImage(overlay, 0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT, null);
         } else {

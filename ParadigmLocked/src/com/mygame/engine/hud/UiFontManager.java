@@ -1,11 +1,9 @@
 package com.mygame.engine.hud;
 
+import com.mygame.engine.core.Resources;
 import java.awt.Font;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,21 +25,15 @@ public final class UiFontManager {
         if (FONTS.containsKey(key)) {
             return;
         }
-        for (Path candidate : List.of(
-                Path.of("assets", path),
-                Path.of("ParadigmLocked", "assets", path),
-                Path.of("..", "assets", path),
-                Path.of("..", "ParadigmLocked", "assets", path))) {
-            if (Files.isRegularFile(candidate)) {
-                try (InputStream input = Files.newInputStream(candidate)) {
-                    FONTS.put(key, Font.createFont(Font.TRUETYPE_FONT, input));
-                    DERIVED.clear(); // drop any fallback fonts cached before this font existed
-                    return;
-                } catch (IOException | java.awt.FontFormatException exception) {
-                    System.err.println("Unable to load font: " + candidate);
-                    return;
-                }
+        try (InputStream input = Resources.open("fonts/" + path.replaceFirst("^fonts/", ""))) {
+            if (input != null) {
+                FONTS.put(key, Font.createFont(Font.TRUETYPE_FONT, input));
+                DERIVED.clear(); // drop any fallback fonts cached before this font existed
+                return;
             }
+        } catch (IOException | java.awt.FontFormatException exception) {
+            System.err.println("Unable to load font: " + path);
+            return;
         }
         System.err.println("Unable to find font: " + path);
     }
@@ -54,9 +46,6 @@ public final class UiFontManager {
         return font("CHOICES_FONT", size, style);
     }
 
-    public static Font openSauceSansBold(float size, int style) {
-        return font("OPEN_SAUCE_SANS_BOLD", size, style);
-    }
 
     public static Font openSauceSansLight(float size, int style) {
         return font("OPEN_SAUCE_SANS_LIGHT", size, style);

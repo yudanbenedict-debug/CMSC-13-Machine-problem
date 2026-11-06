@@ -5,6 +5,7 @@ import com.mygame.engine.core.GameStateManager;
 import com.mygame.engine.core.SoundManager;
 import com.mygame.engine.core.StateMethods;
 import com.mygame.engine.helpers.constants.GameConstants;
+import com.mygame.engine.hud.Hover;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -20,7 +21,7 @@ public final class PauseState implements StateMethods {
     private boolean muted;
     private boolean draggingVolume;
     private boolean muteHovered;
-    private int hoveredOption = -1;
+    private final Hover hover = new Hover();
 
     public PauseState(GameStateManager stateManager, Consumer<Graphics2D> backdrop) {
         this.stateManager = stateManager;
@@ -34,11 +35,11 @@ public final class PauseState implements StateMethods {
             graphics.setColor(new Color(0, 0, 0, 175));
             graphics.fillRect(0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT);
         }
-        OverlayMenuRenderer.drawPauseOverlay(graphics, hoveredOption, volume, muted, muteHovered);
+        OverlayMenuRenderer.drawPauseOverlay(graphics, hover.index(), volume, muted, muteHovered);
     }
 
     @Override public void update(double deltaTime) { }
-    @Override public void onEnter() { hoveredOption = -1; draggingVolume = false; }
+    @Override public void onEnter() { hover.clear(); draggingVolume = false; }
     @Override public void onExit() { }
 
     @Override
@@ -89,10 +90,7 @@ public final class PauseState implements StateMethods {
                 break;
             }
         }
-        if (now >= 0 && now != hoveredOption) {
-            SoundManager.playMenuHover();
-        }
-        hoveredOption = now;
+        hover.update(now);
         muteHovered = OverlayMenuRenderer.getPauseMuteBounds().contains(point);
         if (draggingVolume) {
             updateVolume(point.x);
