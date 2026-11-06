@@ -42,7 +42,6 @@ public final class TemporaryUiRenderer {
         }
     }
 
-    /** Question text in QUESTION_FONT, auto-sized so long questions / code never bleed out. */
     public static void drawGameplayQuestion(Graphics2D g, String question) {
         UiText.Block block = UiText.fit(question, UiFontManager.question(28, Font.PLAIN), 28, 13,
             GameConstants.TEMPORARY_GAMEPLAY_QUESTION_TEXT_WIDTH,
@@ -60,7 +59,6 @@ public final class TemporaryUiRenderer {
         UiText.drawBlock(g, block, x, y + 68, TEXT, null);
     }
 
-    /** "Do you really wish to Abandon this question?" with "Abandon" in #fa5555. */
     public static void drawAbandonPrompt(Graphics2D g) {
         Font font = UiFontManager.dorris(30, Font.BOLD);
         String before = "Do you really wish to ";
@@ -109,7 +107,7 @@ public final class TemporaryUiRenderer {
         int textX = bounds.x + 52;
         int textTop = bounds.y + 8;
         int textWidth = bounds.width - 64;
-        int textHeight = bounds.height - 34; // keep clear of the flourish at the bottom of the border
+        int textHeight = bounds.height - 34;  // stay above the border's bottom flourish
         UiText.Block block = choiceBlock(text, bounds);
         float top = textTop + Math.max(0, (textHeight - block.height) / 2f);
         UiText.draw(g, label + ".", UiFontManager.choices(28, Font.PLAIN), bounds.x + 14,
@@ -134,12 +132,11 @@ public final class TemporaryUiRenderer {
             bounds.width - 64, bounds.height - 34, 0.92f);
     }
 
-    /** True when a choice is too long for its box (it then gets an "..." and a hover preview). */
     public static boolean isChoiceTruncated(String text, Rectangle bounds) {
         return text != null && !text.isBlank() && choiceBlock(text, bounds).truncated;
     }
 
-    /** Pulls lone "{" lines up onto the previous line so code snippets take fewer lines. */
+    // Joins lone "{" lines onto the previous line.
     public static String compactCode(String text) {
         if (text == null || !text.contains("<br>")) {
             return text;
@@ -159,10 +156,7 @@ public final class TemporaryUiRenderer {
         return result.toString();
     }
 
-    /**
-     * Full-size preview of a long (code) choice, drawn over the question area while it is
-     * hovered or selected, so truncated choices are still fully readable.
-     */
+    // Full view of a long choice over the question area.
     public static void drawChoicePreview(Graphics2D g, String label, String text) {
         int x = GameConstants.TEMPORARY_GAMEPLAY_QUESTION_TEXT_X - 15;
         int y = GameConstants.TEMPORARY_GAMEPLAY_PANEL_Y;
@@ -177,7 +171,7 @@ public final class TemporaryUiRenderer {
         UiText.draw(g, "CHOICE " + label, UiFontManager.dorris(16, Font.BOLD), x + 16, y + 24,
             new Color(229, 190, 94));
         String body = compactCode(text);
-        // try one column first; very long snippets are split into two columns
+        // one column first, two columns if it still doesn't fit
         UiText.Block single = UiText.fit(body, UiFontManager.choices(22, Font.PLAIN), 22, 12,
             width - 32, height - 48, 0.95f);
         if (!single.truncated || !body.contains("<br>")) {

@@ -34,7 +34,7 @@ public class GameStateManager {
     }
 
     public GameState getState() { return current; }
-    // the state we came from (e.g. HOW TO PLAY returns to PAUSED or MENU depending on this)
+    // lets HOW TO PLAY return to PAUSED or MENU
     public GameState getPreviousState() { return previous; }
 
     public void update(double dt) { StateMethods h = handlers.get(current); if (h != null) h.update(dt); }

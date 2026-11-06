@@ -1,9 +1,6 @@
 package com.mygame.game;
 
-/*
-    The three consumables. weight = drop weight (higher = more common), used by the weighted roll in
-    ConsumableInventory.rollDrop(). NullSlinger is the most common, Refresher the rarest.
- */
+// The three consumables; weight = drop weight.
 public enum Consumable {
     NULLSLINGER("NullSlinger", "CONSUMABLE_NULLSLINGER", "CONSUMABLE_NULLSLINGER_USED", 60,
         "Nullifies one wrong choice."),

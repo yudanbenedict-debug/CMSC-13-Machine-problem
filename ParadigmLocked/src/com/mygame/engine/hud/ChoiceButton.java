@@ -6,7 +6,6 @@ import java.awt.Point;
 import java.awt.Rectangle;
 
 public class ChoiceButton {
-    /** How the choice should look after an answer is locked in. */
     public enum Result { NONE, CORRECT, WRONG }
 
     private final Rectangle bounds;
@@ -64,7 +63,7 @@ public class ChoiceButton {
         return selected;
     }
 
-    /** NullSlinger removed this (wrong) choice: drawn crossed out and no longer clickable. */
+    // NullSlinger: crossed out and unclickable.
     public void setNullified(boolean nullified) {
         this.nullified = nullified;
         if (nullified) {
@@ -82,7 +81,6 @@ public class ChoiceButton {
         this.result = result;
     }
 
-    /** Clears per-question state (selection, nullify, result) and re-enables the button. */
     public void reset(String newText) {
         text = newText;
         selected = false;
@@ -111,7 +109,6 @@ public class ChoiceButton {
         return label;
     }
 
-    /** Long choice that doesn't fit its box: the gameplay screen shows a full preview on hover. */
     public boolean needsPreview() {
         return !nullified && TemporaryUiRenderer.isChoiceTruncated(text, bounds);
     }

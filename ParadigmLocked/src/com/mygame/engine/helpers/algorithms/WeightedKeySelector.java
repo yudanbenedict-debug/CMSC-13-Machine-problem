@@ -32,10 +32,17 @@ public class WeightedKeySelector<K, V> {
         }
 
     }
-    //counts a key as used when an item was picked for it outside selectNextKey()
+    // marks a key used when picked outside selectNextKey()
     public void markUsed(K key){
         if(usedCounts.containsKey(key)){
             usedCounts.put(key, usedCounts.get(key) + 1);
+        }
+    }
+
+    // returns a use to a key (question put back into the pool)
+    public void unmarkUsed(K key){
+        if(usedCounts.containsKey(key) && usedCounts.get(key) > 0){
+            usedCounts.put(key, usedCounts.get(key) - 1);
         }
     }
 

@@ -12,8 +12,7 @@ public class QuestionBank {
     private final Map<String, List<Question>> questionsByType;
 
     public QuestionBank() {
-        // FileLoader already loads both MCQ files once (shared static list). Loading them again
-        // here used to add every question 2-3 times, so the same question could repeat.
+        // FileLoader already loads both CSVs; loading them again duplicated questions
         FileLoader loader = new FileLoader();
         questions = loader.getQuestions();
         questionsByCategory = questions.stream()

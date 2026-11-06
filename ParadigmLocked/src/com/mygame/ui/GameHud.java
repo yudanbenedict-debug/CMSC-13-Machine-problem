@@ -17,10 +17,7 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 
-/*
-    Everything drawn along the top of the gameplay screen:
-    pause button (top-left), foremost-node status of both sides, timer + score, Paradigm Space minimap.
- */
+// HUD along the top of the gameplay screen.
 public final class GameHud {
     private static final Color TEXT = new Color(222, 235, 230);
     private static final Color DANGER = new Color(0xD05A5A);
@@ -95,6 +92,12 @@ public final class GameHud {
             centerX, 48, urgent ? DANGER : TEXT, urgent ? new Color(0xD0, 0x5A, 0x5A, 170) : null);
         UiText.drawCentered(g, score + " (POINTS)", UiFontManager.luckiestGuy(24, Font.PLAIN),
             centerX, 86, GOLD, null);
+    }
+
+    public static void drawQuestionsLeft(Graphics2D g, int left, int total) {
+        UiText.drawCentered(g, "QUESTIONS LEFT: " + left + "/" + total, UiFontManager.dorris(13, Font.BOLD),
+            GameConstants.MINIMAP_X + GameConstants.MINIMAP_WIDTH / 2f,
+            GameConstants.MINIMAP_Y + GameConstants.MINIMAP_HEIGHT + 16, TEXT, null);
     }
 
     public static void drawMinimap(Graphics2D g, ParadigmSpace space, double time) {

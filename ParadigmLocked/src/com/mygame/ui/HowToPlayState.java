@@ -5,6 +5,25 @@ import com.mygame.engine.helpers.constants.GameConstants;
 import java.util.List;
 
 public class HowToPlayState extends InfoState {
+    // Tips shown during the pre-game briefing.
+    public static final String[] TIPS = {
+        "A correct answer damages the enemy's foremost node. A wrong answer damages yours.",
+        "To win you must answer EVERY question correctly. Missed questions come back a few turns later.",
+        "Each question has a " + (int) GameConstants.QUESTION_TIME_SECONDS
+            + " second timer. Running out of time counts as a wrong answer.",
+        "Answer fast: every second left on the timer adds bonus points.",
+        "Contact Declarative Dynamo for a hint. You only get " + GameConstants.DYNAMO_HINT_USES
+            + " function calls per game.",
+        "Abandoning a question counts as a wrong answer, so only flee when you're truly stuck.",
+        "Consumables drop after correct answers, and always when you destroy a node.",
+        "NullSlinger removes one wrong choice. Save it for the hard Core questions.",
+        "Scripter's Sacrifice doubles your damage, but overusing it hurts you every turn until discarded.",
+        "Refresher resets Declarative Dynamo's function calls.",
+        "Questions get harder the deeper you push: the Core asks programming questions.",
+        "Right-click deselects a choice. Click a selected choice again (or press Enter) to confirm.",
+        "Press Esc or P anytime to pause."
+    };
+
     public HowToPlayState(GameStateManager stateManager) {
         super(stateManager, "HOW TO PLAY", List.of(
             InfoBlock.heading("About"),
@@ -44,7 +63,10 @@ public class HowToPlayState extends InfoState {
                 + "every second left on the timer. Wrong answers, timeouts and abandoned questions cost "
                 + GameConstants.SCORE_WRONG_PENALTY + " points."),
             InfoBlock.subheading("Win Condition"),
-            InfoBlock.body("Destroy every opposing node, including both phases of the enemy Core."),
+            InfoBlock.body("Destroy every opposing node, including both phases of the enemy Core. "
+                + "The enemy's HP equals the whole question bank, so you must answer every question "
+                + "correctly once. A missed question isn't lost: it returns a few questions later "
+                + "with its choices reshuffled."),
             InfoBlock.subheading("Lose Condition"),
             InfoBlock.body("If the enemy destroys the Core of your allied faction, you lose."),
 

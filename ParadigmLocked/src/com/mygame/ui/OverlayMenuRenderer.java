@@ -25,14 +25,12 @@ public final class OverlayMenuRenderer {
     private static final Color SUBHEADING = new Color(0x98AAFF);
     private static final Color VOLUME_FILL = new Color(0x98AAFF);
     private static final Color HOVER_GLOW = new Color(255, 236, 170, 200);
-    // the info screens never change, so their layout is computed once per block list
+    // layouts are cached since the info screens never change
     private static final Map<List<InfoBlock>, Layout> LAYOUT_CACHE =
         Collections.synchronizedMap(new IdentityHashMap<>());
 
     private OverlayMenuRenderer() {
     }
-
-    // ------------------------------------------------------------------ info overlays
 
     private static final class Placed {
         final InfoBlock block;
@@ -193,8 +191,6 @@ public final class OverlayMenuRenderer {
             GameConstants.OVERLAY_MENU_BACK_HEIGHT);
     }
 
-    // ------------------------------------------------------------------ pause overlay
-
     public static void drawPauseOverlay(Graphics2D graphics, int hoveredOption, double volume,
                                         boolean muted, boolean muteHovered) {
         drawFrame(graphics, "UI_OVERLAY_MENU_PAUSE");
@@ -226,7 +222,6 @@ public final class OverlayMenuRenderer {
             GameConstants.PAUSE_VOLUME_ICON_WIDTH, volumeBounds.height);
     }
 
-    /** Slider track (x range) used for dragging: from the speaker icon to the inner right edge. */
     public static int volumeTrackStart() {
         return GameConstants.PAUSE_VOLUME_X + GameConstants.PAUSE_VOLUME_ICON_WIDTH;
     }
@@ -237,7 +232,7 @@ public final class OverlayMenuRenderer {
 
     private static void drawVolumeBar(Graphics2D graphics, double volume, boolean muted, boolean muteHovered) {
         Rectangle bounds = getPauseVolumeBounds();
-        // inner pill of the PNG (500x150): x 25..475, y 25..125, radius 50 -> the fill matches its border
+        // fill clipped to the PNG's inner pill (x 25..475, y 25..125 of 500x150)
         double sx = bounds.width / 500.0;
         double sy = bounds.height / 150.0;
         Shape inner = new RoundRectangle2D.Double(bounds.x + 25 * sx, bounds.y + 25 * sy,
@@ -272,8 +267,6 @@ public final class OverlayMenuRenderer {
             graphics.fillOval(mute.x + 6, mute.y + 8, mute.width - 4, mute.height - 16);
         }
     }
-
-    // ------------------------------------------------------------------ shared
 
     private static void drawFrame(Graphics2D graphics, String assetKey) {
         BufferedImage frame = AssetCache.get(assetKey);

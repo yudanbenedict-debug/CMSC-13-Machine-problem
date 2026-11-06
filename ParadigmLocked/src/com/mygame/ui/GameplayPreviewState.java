@@ -13,8 +13,10 @@ import com.mygame.engine.hud.TemporaryRadialMenu;
 import com.mygame.engine.hud.TemporaryUiRenderer;
 import com.mygame.engine.hud.UiFontManager;
 import com.mygame.engine.hud.UiText;
+import com.mygame.engine.helpers.algorithms.EasingMethods;
 import com.mygame.game.Consumable;
 import com.mygame.game.ConsumableInventory;
+import com.mygame.game.Faction;
 import com.mygame.game.ParadigmSpace;
 import com.mygame.game.QuestionRound;
 import com.mygame.game.QuestionSelector;
@@ -30,12 +32,7 @@ import java.util.List;
 import java.util.Random;
 import javax.swing.SwingUtilities;
 
-/*
-    Main gameplay screen.
-    Turn flow: a question is shown with a countdown -> the player answers / abandons / runs out of time
-    -> the turn is resolved on the Paradigm Space (damage, score, consumable drops) -> click or Enter
-    moves on to the next question. When either Core falls the WON / LOST overlay is shown.
- */
+// Main gameplay screen: question -> answer/timeout -> resolve turn -> next question.
 public class GameplayPreviewState implements StateMethods {
     private static final Color TEXT = new Color(222, 235, 230);
     private static final Color GOOD = new Color(0x7FB05A);
@@ -72,6 +69,9 @@ public class GameplayPreviewState implements StateMethods {
     private String hintText;
     private boolean scriptersActiveThisTurn;
     private boolean lowHpAlertPlayed;
+    private double briefingLeft;       // > 0 while the "get ready" briefing is showing
+    private double briefingShown;
+    private String[] briefingTips = new String[0];
     private Boolean gameResult;      // null = still playing, true = won, false = lost
     private double endDelay;
 
@@ -104,11 +104,9 @@ public class GameplayPreviewState implements StateMethods {
         startNewGame();
     }
 
-    // ------------------------------------------------------------------ game setup
-
     public void startNewGame() {
         questionSelector = new QuestionSelector();
-        space = new ParadigmSpace();
+        space = new ParadigmSpace(questionSelector.totalQuestions());
         inventory = new ConsumableInventory();
         consumablePanel = new ConsumablePanel(inventory, this::useConsumable, this::discardScripters);
         score = 0;
@@ -117,14 +115,15 @@ public class GameplayPreviewState implements StateMethods {
         gameResult = null;
         endDelay = 0;
         noticeMessage = "";
-        radialMenu.clearSelection(); // nothing open by default, the player picks from the wheel
+        radialMenu.clearSelection();
         loadNextQuestion();
+        startBriefing();
     }
 
     @Override
     public void onEnter() {
         GameState previous = stateManager.getPreviousState();
-        // coming from the menu = a fresh run; coming back from PAUSED / HOW TO PLAY = keep going
+        // fresh run from the menu; keep going when returning from pause
         if (previous == GameState.MENU || previous == GameState.TITLE || previous == GameState.WON
                 || previous == GameState.LOST) {
             startNewGame();
@@ -135,15 +134,16 @@ public class GameplayPreviewState implements StateMethods {
 
     @Override public void onExit() { }
 
-    // ------------------------------------------------------------------ drawing
-
     @Override
     public void draw(Graphics2D g) {
         drawScene(g);
+        if (briefingLeft > 0) {
+            drawBriefing(g);
+        }
         GameHud.drawPauseButton(g, pauseHovered);
     }
 
-    /** Whole gameplay picture without the pause-button hover; also used behind the pause/end overlays. */
+    // Full gameplay frame; also drawn behind the pause and end overlays.
     public void drawScene(Graphics2D g) {
         BufferedImage background = AssetCache.get("UI_MAIN_GAME_BACKGROUND");
         if (background != null) {
@@ -155,7 +155,13 @@ public class GameplayPreviewState implements StateMethods {
         GameHud.drawNodeStatus(g, space, clock);
         GameHud.drawTimerAndScore(g, timeLeft, score, currentRound != null && !answerLocked);
         GameHud.drawMinimap(g, space, clock);
+        int left = questionSelector.remainingQuestions() + (currentRound != null && !answerLocked ? 1 : 0);
+        GameHud.drawQuestionsLeft(g, left, questionSelector.totalQuestions());
 
+        if (briefingLeft > 0) {
+            radialMenu.draw(g);
+            return;
+        }
         TemporaryUiRenderer.drawGameplayQuestion(g,
             currentQuestion == null ? "No questions available." : currentQuestion.question);
         drawStatusMessage(g);
@@ -175,11 +181,10 @@ public class GameplayPreviewState implements StateMethods {
         } else if (activeOption == TemporaryRadialMenu.Option.CONSUMABLE) {
             consumablePanel.draw(g);
         }
-        // activeOption == null: nothing open yet, only the "Select a choice." prompt is shown
         radialMenu.draw(g);
     }
 
-    /** Long code choices are cut off in their box; hovering (or selecting) one shows it in full. */
+    // Shows a truncated (long code) choice in full while hovered or selected.
     private void drawChoicePreview(Graphics2D g) {
         ChoiceButton shown = null;
         for (ChoiceButton choiceButton : choiceButtons) {
@@ -271,12 +276,15 @@ public class GameplayPreviewState implements StateMethods {
             UiFontManager.dorris(18, Font.BOLD), textX, panelY + 255, hintsLeft > 0 ? TEXT : BAD);
     }
 
-    // ------------------------------------------------------------------ update / input
-
     @Override
     public void update(double dt) {
         clock += dt;
         radialMenu.update(dt);
+        if (briefingLeft > 0) {
+            briefingShown += dt;
+            briefingLeft -= dt;
+            return;
+        }
         if (gameResult != null) {
             endDelay -= dt;
             if (endDelay <= 0) {
@@ -298,6 +306,10 @@ public class GameplayPreviewState implements StateMethods {
         Point point = event.getPoint();
         if (GameHud.pauseBounds().contains(point)) {
             stateManager.setState(GameState.PAUSED);
+            return;
+        }
+        if (briefingLeft > 0) {
+            skipBriefing();
             return;
         }
         if (gameResult != null) {
@@ -327,7 +339,7 @@ public class GameplayPreviewState implements StateMethods {
         }
     }
 
-    /** Right-click: drop the picked answer (and a picked consumable) without confirming anything. */
+    // Right-click: deselect the answer and consumable.
     private void deselectChoice() {
         if (answerLocked) {
             return;
@@ -347,6 +359,9 @@ public class GameplayPreviewState implements StateMethods {
             SoundManager.playMenuHover();
         }
         pauseHovered = nowHovered;
+        if (briefingLeft > 0) {
+            return;
+        }
         radialMenu.mouseMoved(point);
         if (activeOption == TemporaryRadialMenu.Option.ANSWER) {
             for (ChoiceButton choiceButton : choiceButtons) {
@@ -371,6 +386,11 @@ public class GameplayPreviewState implements StateMethods {
             return;
         }
         if (code != KeyEvent.VK_ENTER && code != KeyEvent.VK_SPACE) {
+            return;
+        }
+        if (briefingLeft > 0) {
+            skipBriefing();
+            confirmKeyHeld = true;  // same press must not confirm an answer
             return;
         }
         // Ignore key auto-repeat so holding Enter can't confirm and skip the feedback in one go.
@@ -424,7 +444,66 @@ public class GameplayPreviewState implements StateMethods {
         }
     }
 
-    // ------------------------------------------------------------------ questions
+    private void startBriefing() {
+        briefingLeft = GameConstants.BRIEFING_SECONDS;
+        briefingShown = 0;
+        java.util.List<String> tips = new ArrayList<>(java.util.Arrays.asList(HowToPlayState.TIPS));
+        java.util.Collections.shuffle(tips, random);
+        briefingTips = tips.subList(0, Math.min(2, tips.size())).toArray(new String[0]);
+    }
+
+    // Skips the briefing after the minimum time, keeping the fade-out.
+    private void skipBriefing() {
+        if (briefingShown >= GameConstants.BRIEFING_MIN_SECONDS) {
+            briefingLeft = Math.min(briefingLeft, GameConstants.BRIEFING_FADE_SECONDS);
+        }
+    }
+
+    private void drawBriefing(Graphics2D g) {
+        double in = EasingMethods.smoothStep(briefingShown / GameConstants.BRIEFING_FADE_SECONDS);
+        double out = EasingMethods.easeIn(Math.min(1, briefingLeft / GameConstants.BRIEFING_FADE_SECONDS));
+        float alpha = (float) Math.max(0, Math.min(1, in * out));
+        g.setColor(new Color(0, 0, 0, (int) (215 * alpha)));
+        g.fillRect(0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT);
+        java.awt.Composite old = g.getComposite();
+        g.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, alpha));
+
+        float centerX = GameConstants.LOGICAL_WIDTH / 2f;
+        UiText.drawCentered(g, "GET READY, PROGRAMMER", UiFontManager.luckiestGuy(46, Font.PLAIN),
+            centerX, 175, GOLD, new Color(229, 190, 94, 110));
+        Faction team = Faction.player();
+        Font teamFont = UiFontManager.dorris(24, Font.BOLD);
+        String before = "You fight for the ";
+        float teamX = centerX - (UiText.width(before, teamFont) + UiText.width(team.displayName, teamFont)) / 2f;
+        UiText.draw(g, before, teamFont, teamX, 222, TEXT);
+        UiText.draw(g, team.displayName, teamFont, teamX + UiText.width(before, teamFont), 222, team.color,
+            new Color(team.color.getRed(), team.color.getGreen(), team.color.getBlue(), 120));
+        UiText.drawCentered(g, "Break through: Procedural Gate > Object Model > Functional Registers"
+            + " > Logic Shrines > Core", UiFontManager.dorris(17, Font.BOLD), centerX, 256,
+            new Color(190, 190, 190), null);
+
+        int tipY = 315;
+        for (String tip : briefingTips) {
+            UiText.drawCentered(g, "TIP", UiFontManager.luckiestGuy(20, Font.PLAIN), centerX, tipY, GOLD, null);
+            UiText.Block block = UiText.wrap(tip, UiFontManager.notoSerif(21, Font.PLAIN), 760, 1.15f, 3);
+            float baseline = tipY + 12 + block.ascent;
+            for (java.awt.font.TextLayout line : block.lines) {
+                UiText.drawLayout(g, line, centerX - line.getAdvance() / 2f, baseline, TEXT, null);
+                baseline += block.lineHeight;
+            }
+            tipY = (int) baseline + 34;
+        }
+
+        int seconds = (int) Math.ceil(Math.max(0, briefingLeft));
+        UiText.drawCentered(g, "Starting in " + seconds, UiFontManager.luckiestGuy(28, Font.PLAIN),
+            centerX, 600, TEXT, null);
+        if (briefingShown >= GameConstants.BRIEFING_MIN_SECONDS) {
+            int blink = (int) (150 + 105 * (0.5 + 0.5 * Math.sin(briefingShown * 3)));
+            UiText.drawCentered(g, "Click or press Enter to begin", UiFontManager.dorris(18, Font.BOLD),
+                centerX, 636, new Color(246, 242, 229, blink), null);
+        }
+        g.setComposite(old);
+    }
 
     private String preferredCategory() {
         switch (space.currentTier()) {
@@ -433,7 +512,7 @@ public class GameplayPreviewState implements StateMethods {
             case CORE:
                 return "Programming";
             default:
-                return null; // middle nodes: weighted mix of both
+                return null;
         }
     }
 
@@ -458,7 +537,7 @@ public class GameplayPreviewState implements StateMethods {
                 choiceButton.reset("");
                 choiceButton.setEnabled(false);
             }
-            // out of questions: whoever took less damage (relative to their total) wins
+            // out of questions: whoever kept more HP (in %) wins
             double allyLeft = space.ally().totalHp() / (double) space.ally().maxTotalHp();
             double enemyLeft = space.enemy().totalHp() / (double) space.enemy().maxTotalHp();
             endGame(allyLeft > enemyLeft);
@@ -470,7 +549,7 @@ public class GameplayPreviewState implements StateMethods {
         for (int index = 0; index < choiceButtons.length; index++) {
             choiceButtons[index].reset(answers[index]);
         }
-        radialMenu.clearSelection(); // every new question starts with nothing selected
+        radialMenu.clearSelection();
     }
 
     private int correctIndex() {
@@ -491,7 +570,6 @@ public class GameplayPreviewState implements StateMethods {
         lockWithResult(correct, "");
     }
 
-    /** Locks the question, shows the right answer and applies the turn's consequences. */
     private void lockWithResult(boolean correct, String reasonPrefix) {
         int correctIndex = correctIndex();
         answerLocked = true;
@@ -504,17 +582,21 @@ public class GameplayPreviewState implements StateMethods {
         }
         String answerLetter = String.valueOf("ABCD".charAt(correctIndex));
         if (activeOption != TemporaryRadialMenu.Option.ANSWER) {
-            radialMenu.select(TemporaryRadialMenu.Option.ANSWER); // show the revealed answer
+            radialMenu.select(TemporaryRadialMenu.Option.ANSWER);
         }
         resultMessage = reasonPrefix + (correct ? "Correct! " : "Wrong. Answer: " + answerLetter + ". ")
             + resolveTurn(correct) + " Click or press Enter to continue.";
     }
 
-    /** Applies damage, score and drops. Returns a short summary for the status line. */
+    // Applies damage, score and drops; returns the status summary.
     private String resolveTurn(boolean correct) {
         StringBuilder summary = new StringBuilder();
         if (correct) {
-            int damage = scriptersActiveThisTurn ? 2 : 1;
+            // 1 damage = 1 question cleared (Scripter's extra damage clears one more)
+            int damage = 1;
+            if (scriptersActiveThisTurn && questionSelector.clearExtraQuestion()) {
+                damage = 2;
+            }
             boolean destroyed = space.enemy().damage(damage);
             int gained = GameConstants.SCORE_CORRECT
                 + (int) Math.ceil(timeLeft) * GameConstants.SCORE_TIME_BONUS_PER_SECOND;
@@ -530,6 +612,8 @@ public class GameplayPreviewState implements StateMethods {
                 noticeMessage = "You received " + drop.displayName + "!";
             }
         } else {
+            // missed questions return to the pool later
+            questionSelector.defer(currentQuestion);
             space.ally().damage(1);
             score = Math.max(0, score - GameConstants.SCORE_WRONG_PENALTY);
             SoundManager.playSFX("DAMAGE_TICK");
@@ -564,10 +648,8 @@ public class GameplayPreviewState implements StateMethods {
         stateManager.setState(gameResult ? GameState.WON : GameState.LOST);
     }
 
-    // ------------------------------------------------------------------ radial options
-
     private void activateOption(TemporaryRadialMenu.Option option) {
-        activeOption = option; // null = nothing open
+        activeOption = option;
         // Switching menu options clears a pending pick, but must never unlock an answered question
         // (otherwise the player could lock a wrong answer, switch tabs, and answer again).
         if (option != TemporaryRadialMenu.Option.ANSWER && !answerLocked) {
@@ -588,7 +670,7 @@ public class GameplayPreviewState implements StateMethods {
         return currentRound != null && !answerLocked && hintText == null && hintsLeft > 0 && gameResult == null;
     }
 
-    /** Only runs when the player confirms with the ASK FOR A HINT button (opening the panel is free). */
+    // Only called from the ASK FOR A HINT button.
     private void requestHint() {
         if (!canAskHint()) {
             return;
@@ -598,7 +680,7 @@ public class GameplayPreviewState implements StateMethods {
         SoundManager.playSFX("HINT_PROMPT");
     }
 
-    /** Dynamo's hint: the topic of the question, then narrows it down to two choices. */
+    // Hint: the question's topic plus a 50/50 between two choices.
     private String buildHint() {
         int correct = correctIndex();
         List<Integer> wrong = new ArrayList<>();
@@ -633,9 +715,7 @@ public class GameplayPreviewState implements StateMethods {
         radialMenu.clearSelection();
     }
 
-    // ------------------------------------------------------------------ consumables
-
-    /** Called by the consumable panel on the second click. Returns true if the item was spent. */
+    // Returns true if the consumable was spent.
     private boolean useConsumable(Consumable consumable) {
         if (currentRound == null || answerLocked || gameResult != null) {
             noticeMessage = "Consumables can only be used during a question.";
@@ -700,8 +780,6 @@ public class GameplayPreviewState implements StateMethods {
         noticeMessage = "Scripter's Sacrifice discarded.";
     }
 
-    // ------------------------------------------------------------------ choices
-
     private ChoiceButton createChoiceButton(String label, int x, int y, int index) {
         return new ChoiceButton(x, y, GameConstants.TEMPORARY_GAMEPLAY_CHOICE_WIDTH,
                 GameConstants.TEMPORARY_GAMEPLAY_CHOICE_HEIGHT, label, "", () -> selectChoice(index));
@@ -722,7 +800,6 @@ public class GameplayPreviewState implements StateMethods {
         }
     }
 
-    /** Used by tests / overlays that need to know the current run's numbers. */
     public int getScore() {
         return score;
     }

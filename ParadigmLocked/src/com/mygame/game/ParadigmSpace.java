@@ -1,12 +1,6 @@
 package com.mygame.game;
 
-/*
-    Paradigm Space: one execution lane, each side guarded by the same chain of Paradigm Nodes.
-    Nodes must be destroyed in order (foremost first):
-        Procedural Gate -> Object Model -> Functional Register x2 -> Logic Shrine x2 -> Core (2 phases)
-    A correct answer damages the ENEMY's foremost node, a wrong answer damages YOUR foremost node.
-    Destroying the enemy Core (both phases) wins; losing your own Core loses.
- */
+// Both sides' node chains; correct answers hit the enemy, wrong ones hit you.
 public final class ParadigmSpace {
     public enum Tier { EARLY, MIDDLE, CORE }
 
@@ -32,15 +26,18 @@ public final class ParadigmSpace {
         }
     }
 
-    /** One side (yours or the enemy's). */
     public static final class Side {
-        private final Node[] nodes = createNodes();
+        private final Node[] nodes;
+
+        Side(Node[] nodes) {
+            this.nodes = nodes;
+        }
 
         public Node[] nodes() {
             return nodes;
         }
 
-        /** Index of the foremost standing node, or nodes.length when the Core is gone. */
+        // nodes.length when the Core is gone
         public int foremostIndex() {
             for (int index = 0; index < nodes.length; index++) {
                 if (!nodes[index].destroyed()) {
@@ -55,7 +52,7 @@ public final class ParadigmSpace {
             return index < nodes.length ? nodes[index] : null;
         }
 
-        /** Deals damage to the foremost node; returns true if that hit destroyed a node. */
+        // returns true if a node was destroyed
         public boolean damage(int amount) {
             boolean destroyedNode = false;
             for (int hit = 0; hit < amount; hit++) {
@@ -90,20 +87,45 @@ public final class ParadigmSpace {
         }
     }
 
-    private final Side ally = new Side();
-    private final Side enemy = new Side();
+    private static final String[] NAMES = {"Procedural Gate", "Object Model", "Functional Register I",
+        "Functional Register II", "Logic Shrine I", "Logic Shrine II", "Core: Syntax", "Core: Semantics"};
+    private static final Tier[] TIERS = {Tier.EARLY, Tier.EARLY, Tier.MIDDLE, Tier.MIDDLE, Tier.MIDDLE,
+        Tier.MIDDLE, Tier.CORE, Tier.CORE};
+    // your HP: 48 total (mistakes you can afford)
+    private static final int[] ALLY_HP = {4, 4, 6, 6, 6, 6, 8, 8};
+    // enemy HP split per node (scaled to the question count)
+    private static final int[] ENEMY_WEIGHTS = {15, 20, 18, 18, 18, 18, 19, 19};
 
-    private static Node[] createNodes() {
-        return new Node[] {
-            new Node("Procedural Gate", 2, Tier.EARLY),
-            new Node("Object Model", 2, Tier.EARLY),
-            new Node("Functional Register I", 3, Tier.MIDDLE),
-            new Node("Functional Register II", 3, Tier.MIDDLE),
-            new Node("Logic Shrine I", 3, Tier.MIDDLE),
-            new Node("Logic Shrine II", 3, Tier.MIDDLE),
-            new Node("Core: Syntax", 4, Tier.CORE),
-            new Node("Core: Semantics", 4, Tier.CORE)
-        };
+    private final Side ally;
+    private final Side enemy;
+
+    // Enemy total HP = question count, so winning needs every question answered correctly.
+    public ParadigmSpace(int enemyTotalHp) {
+        Node[] allyNodes = new Node[NAMES.length];
+        for (int index = 0; index < NAMES.length; index++) {
+            allyNodes[index] = new Node(NAMES[index], ALLY_HP[index], TIERS[index]);
+        }
+        ally = new Side(allyNodes);
+        enemy = new Side(scaledEnemyNodes(Math.max(NAMES.length, enemyTotalHp)));
+    }
+
+    // rounds cumulatively so the node HPs add up exactly to the total
+    private static Node[] scaledEnemyNodes(int total) {
+        int weightSum = 0;
+        for (int weight : ENEMY_WEIGHTS) {
+            weightSum += weight;
+        }
+        Node[] nodes = new Node[NAMES.length];
+        int given = 0;
+        int weightSoFar = 0;
+        for (int index = 0; index < NAMES.length; index++) {
+            weightSoFar += ENEMY_WEIGHTS[index];
+            int target = (int) Math.round(total * weightSoFar / (double) weightSum);
+            int hp = Math.max(1, target - given);
+            given += hp;
+            nodes[index] = new Node(NAMES[index], hp, TIERS[index]);
+        }
+        return nodes;
     }
 
     public Side ally() {
@@ -114,7 +136,6 @@ public final class ParadigmSpace {
         return enemy;
     }
 
-    /** Difficulty follows how deep you are into the enemy lane. */
     public Tier currentTier() {
         Node node = enemy.foremost();
         return node == null ? Tier.CORE : node.tier;

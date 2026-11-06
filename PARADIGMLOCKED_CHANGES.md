@@ -5,6 +5,36 @@ Unless noted otherwise, every tunable number is in `engine/helpers/constants/Gam
 
 ---
 
+## Revision 5 (Nov 6, 2026): comment cleanup
+
+Trimmed every comment Claude added to one line. A comment is kept only where a method, or a tricky bit of math, isn't obvious from the code; section dividers and comments that restated the code were removed. Comments the team wrote were left untouched. No code changed.
+
+---
+
+## Revision 4 (Nov 6, 2026): win requires every question
+
+| What | How it works | Main files |
+|------|--------------|------------|
+| Enemy HP = question bank | The enemy's total HP equals the number of loaded questions (145). It is split over the 8 nodes by weight: 15 / 20 / 18 / 18 / 18 / 18 / 19 / 19. Each correct answer clears one question and deals 1 damage, so the enemy Core falls exactly when every question has been answered correctly. | `ParadigmSpace` (`ENEMY_WEIGHTS`, `scaledEnemyNodes`) |
+| Missed questions come back | A wrong answer, timeout or abandoned question still damages you, but the question is **not used up**. `QuestionSelector.defer()` puts it on a cooldown of 5 questions, then returns it to the pool with its choices reshuffled. When only missed questions are left, they all come back at once. | `QuestionSelector` (`defer`, `tickRetries`, `release`), `WeightedKeySelector.unmarkUsed` |
+| Your HP doubled | Your nodes now have **48 HP** in total (4/4/6/6/6/6/8/8, up from 24), because a full win takes at least 145 questions. Lower `ALLY_HP` for a harder game. | `ParadigmSpace.ALLY_HP` |
+| Scripter's Sacrifice | Its double damage also clears **one extra question** from the pool (`clearExtraQuestion()`), so enemy HP and remaining questions always stay in sync. | `GameplayPreviewState.resolveTurn`, `QuestionSelector.clearExtraQuestion` |
+| HUD | **QUESTIONS LEFT: n/145** is shown under the minimap. | `GameHud.drawQuestionsLeft` |
+| How to Play / tips | The win-condition text and a new briefing tip explain the rule. | `HowToPlayState` |
+
+Simulated runs: 100% accuracy wins in exactly 145 questions. 90% accuracy wins after about 162 turns (17 misses, all re-asked). 60% accuracy runs out of HP and loses.
+
+---
+
+## Revision 3 (Nov 3, 2026)
+
+| Request | What was done | Main files |
+|---------|---------------|------------|
+| Ease-in fade for the start-up "click to play" screen | **PRESS ANY KEY TO START** fades in on an ease-in curve (`EasingMethods.easeIn`) once the logo is mostly in, then pulses gently. After a key press it eases out, and the white flash was removed. The logo slides into its menu spot (smoothstep) while the dark overlay lifts. The main-menu buttons then ease in over 0.7s, so the title fades into the menu. | `TitleState`, `MainMenuState` |
+| Don't start the game immediately | A **"GET READY, PROGRAMMER"** briefing now shows before the first question. It names your team in its color, shows the node path, and gives **2 random tips** from `HowToPlayState.TIPS` (written from the How to Play text). The question stays hidden and the timer doesn't run. It counts down from 8s; after 0.6s a click, Enter or Space starts the game early. It fades in and out, and Esc/P still pauses. | `GameplayPreviewState` (`startBriefing`, `skipBriefing`, `drawBriefing`), `HowToPlayState.TIPS`, `GameConstants` (`BRIEFING_*`) |
+
+---
+
 ## Revision 2 (Nov 2, 2026): requested changes
 
 | # | Request | What was done | Main files |

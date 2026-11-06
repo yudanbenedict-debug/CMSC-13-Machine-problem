@@ -17,16 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/*
-    Central text helper: measuring, wrapping, auto-fitting and the GLOW effect.
-
-    - QUESTION_FONT / CHOICES_FONT ("Kobani") are Arabic fonts: their digits and , ; % * " glyphs
-      are Arabic shapes (5 shows as a different symbol). Those characters are automatically drawn
-      with a plain sans-serif fallback so code snippets stay correct.
-    - Text layouts are cached (LRU), so calling these every frame is cheap.
-    - glow(...) is the one place that draws glowing text; anything that wants a hover/selected glow
-      just calls UiText.draw(..., glowColor) with a non-null glow color.
- */
+// Text helper: measure, wrap, auto-fit, glow; digits/symbols fall back to sans for the Kobani fonts.
 public final class UiText {
     public static final Color DEFAULT_GLOW = new Color(255, 236, 170);
     private static final FontRenderContext FRC = new FontRenderContext(null, true, true);
@@ -42,7 +33,6 @@ public final class UiText {
     private UiText() {
     }
 
-    /** Result of fitting text into a box: the chosen lines and their metrics. */
     public static final class Block {
         public final List<TextLayout> lines;
         public final float lineHeight;
@@ -69,8 +59,6 @@ public final class UiText {
         }
     }
 
-    // ------------------------------------------------------------------ single line
-
     public static TextLayout layout(String text, Font font) {
         if (text == null || text.isEmpty()) {
             text = " ";
@@ -93,7 +81,6 @@ public final class UiText {
         draw(g, text, font, x, baseline, color, null);
     }
 
-    /** Draws text; when glow is not null the text gets a soft glow behind it. */
     public static void draw(Graphics2D g, String text, Font font, float x, float baseline,
                             Color color, Color glow) {
         if (text == null || text.isEmpty()) {
@@ -107,7 +94,6 @@ public final class UiText {
         draw(g, text, font, centerX - width(text, font) / 2f, baseline, color, glow);
     }
 
-    /** Draws a line centered both ways inside a box. */
     public static void drawInBox(Graphics2D g, String text, Font font, java.awt.Rectangle box,
                                  Color color, Color glow) {
         TextLayout layout = layout(text, font);
@@ -123,7 +109,7 @@ public final class UiText {
         if (glow != null) {
             Shape outline = layout.getOutline(AffineTransform.getTranslateInstance(x, baseline));
             java.awt.Stroke oldStroke = g.getStroke();
-            // glow thickness follows the text size so small text doesn't turn into a blob
+            // glow scales with the text size
             float scale = Math.max(0.35f, Math.min(1.5f, layout.getAscent() / 20f));
             float[] widths = {11f * scale, 7f * scale, 3.5f * scale};
             int[] alphas = {28, 55, 95};
@@ -142,18 +128,12 @@ public final class UiText {
         }
     }
 
-    // ------------------------------------------------------------------ multi line
-
-    /** Wraps (keeping code indentation and <br>/newlines) without changing the font size. */
     public static Block wrap(String text, Font font, int maxWidth, float lineSpacing, int maxLines) {
         return fitInternal(text, font.getFamily(), font, font.getSize2D(), font.getSize2D(),
             maxWidth, Integer.MAX_VALUE, lineSpacing, maxLines);
     }
 
-    /**
-     * Picks the largest font size (maxSize..minSize) whose wrapped text fits in width x height.
-     * If even minSize overflows, the text is cut with an ellipsis so it never bleeds out.
-     */
+    // Largest font size that fits the box; truncates with "..." if even minSize overflows.
     public static Block fit(String text, Font baseFont, float maxSize, float minSize,
                             int width, int height, float lineSpacing) {
         String key = "F|" + baseFont.getFontName() + '|' + baseFont.getStyle() + '|' + maxSize + '|'
@@ -168,7 +148,6 @@ public final class UiText {
         return block;
     }
 
-    /** Draws a block with its first baseline at (x, top + ascent). */
     public static void drawBlock(Graphics2D g, Block block, float x, float top, Color color, Color glow) {
         float baseline = top + block.ascent;
         for (TextLayout line : block.lines) {

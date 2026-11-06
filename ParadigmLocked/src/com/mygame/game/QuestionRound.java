@@ -5,7 +5,6 @@ import java.util.Random;
 import com.mygame.engine.helpers.gamequestions.Question;
 
 public class QuestionRound {
-
     private Question currQuestion;
     private String correctText;
     private String[] answers = new String[4];
@@ -51,7 +50,7 @@ public class QuestionRound {
     //debugger
     private void getQuestionsMaterials(){
         if (!Boolean.getBoolean("paradigm.debug")) {
-            return; // run with -Dparadigm.debug=true to print the questions again
+            return;  // enable with -Dparadigm.debug=true
         }
         System.err.println(currQuestion.id);
         System.err.println(currQuestion.question);

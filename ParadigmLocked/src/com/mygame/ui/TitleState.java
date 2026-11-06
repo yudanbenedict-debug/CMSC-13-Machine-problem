@@ -5,6 +5,7 @@ import com.mygame.engine.core.GameState;
 import com.mygame.engine.core.GameStateManager;
 import com.mygame.engine.core.SoundManager;
 import com.mygame.engine.core.StateMethods;
+import com.mygame.engine.helpers.algorithms.EasingMethods;
 import com.mygame.engine.helpers.constants.GameConstants;
 import com.mygame.engine.hud.TemporaryUiRenderer;
 import com.mygame.engine.hud.UiFontManager;
@@ -16,15 +17,11 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 
-/*
-    Title introduction (UI_MENU_ONTITLESTART idea):
-    after loading, the logo fades in over the menu art with a pulsing "PRESS ANY KEY TO START".
-    Any key or click plays UI_MENU_ONTITLESTART, the logo slides up into its menu position
-    while the screen flashes, then the main menu appears.
- */
+// Title intro: logo fades in, any key starts and slides into the menu.
 public final class TitleState implements StateMethods {
     private static final double LOGO_FADE_SECONDS = 1.2;
-    private static final double START_TRANSITION_SECONDS = 0.9;
+    private static final double START_TRANSITION_SECONDS = 1.1;
+    private static final double PROMPT_FADE_SECONDS = 1.0;
     private final GameStateManager stateManager;
     private double elapsed;
     private double startedAt = -1;
@@ -59,13 +56,13 @@ public final class TitleState implements StateMethods {
             TemporaryUiRenderer.drawScreenBackground(g);
         }
         double transition = startedAt < 0 ? 0 : Math.min(1, (elapsed - startedAt) / START_TRANSITION_SECONDS);
-        double eased = 1 - Math.pow(1 - transition, 3);
+        double eased = EasingMethods.smoothStep(transition);
         g.setColor(new Color(0, 0, 0, (int) (150 * (1 - eased))));
         g.fillRect(0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT);
 
         BufferedImage logo = AssetCache.get("UI_MAIN_MENU_LOGO");
         if (logo != null) {
-            float alpha = (float) Math.min(1, elapsed / LOGO_FADE_SECONDS);
+            float alpha = (float) EasingMethods.smoothStep(elapsed / LOGO_FADE_SECONDS);
             double scale = 1.35 - 0.35 * eased;
             int width = (int) (GameConstants.TEMPORARY_MENU_LOGO_WIDTH * scale);
             int height = (int) (GameConstants.TEMPORARY_MENU_LOGO_HEIGHT * scale);
@@ -77,18 +74,26 @@ public final class TitleState implements StateMethods {
             g.setComposite(old);
         }
 
-        if (startedAt < 0 && elapsed > LOGO_FADE_SECONDS * 0.6) {
-            int alpha = (int) (140 + 115 * (0.5 + 0.5 * Math.sin(elapsed * 3.2)));
-            UiText.drawCentered(g, "PRESS ANY KEY TO START", UiFontManager.luckiestGuy(30, Font.PLAIN),
-                GameConstants.LOGICAL_WIDTH / 2f, 560, new Color(246, 242, 229, alpha),
-                new Color(255, 236, 170, alpha / 2));
+        drawPrompt(g);
+    }
+
+    // Prompt opacity: ease-in on appear, gentle pulse, ease-out after a key press.
+    private void drawPrompt(Graphics2D g) {
+        double appear = EasingMethods.easeIn(clamp((elapsed - LOGO_FADE_SECONDS * 0.6) / PROMPT_FADE_SECONDS));
+        double pulse = 0.75 + 0.25 * (0.5 + 0.5 * Math.sin(elapsed * 2.6));
+        double out = startedAt < 0 ? 1
+            : 1 - EasingMethods.easeIn(clamp((elapsed - startedAt) / (START_TRANSITION_SECONDS * 0.6)));
+        int alpha = (int) Math.round(255 * appear * pulse * out);
+        if (alpha <= 0) {
+            return;
         }
-        if (startedAt >= 0) {
-            // quick white flash synced with the start sound
-            int flash = (int) (200 * Math.max(0, 1 - (elapsed - startedAt) / 0.35));
-            g.setColor(new Color(255, 255, 255, flash));
-            g.fillRect(0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT);
-        }
+        UiText.drawCentered(g, "PRESS ANY KEY TO START", UiFontManager.luckiestGuy(30, Font.PLAIN),
+            GameConstants.LOGICAL_WIDTH / 2f, 560, new Color(246, 242, 229, alpha),
+            new Color(255, 236, 170, alpha / 2));
+    }
+
+    private static double clamp(double value) {
+        return Math.max(0, Math.min(1, value));
     }
 
     private void start() {
@@ -97,7 +102,7 @@ public final class TitleState implements StateMethods {
         }
         startedAt = elapsed;
         SoundManager.playSFX("UI_MENU_ONTITLESTART");
-        // from here on the menu theme sits lower so the menu button sounds stand out
+        // quieter menu theme from here on
         SoundManager.setLevel("THEME_MAIN_MENU", GameConstants.MENU_MUSIC_DUCKED_LEVEL);
     }
 

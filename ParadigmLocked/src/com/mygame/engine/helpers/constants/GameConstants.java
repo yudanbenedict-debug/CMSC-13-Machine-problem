@@ -30,12 +30,12 @@ public final class GameConstants {
     public static final int PAUSE_TITLE_PAUSED_BASELINE = 328;
     public static final int PAUSE_OPTION_START_Y = 408;
     public static final int PAUSE_OPTION_SPACING = 50;
-    // volume bar keeps the PNG's 500x150 aspect ratio (10:3)
+    // keeps the PNG's 10:3 ratio
     public static final int PAUSE_VOLUME_WIDTH = 267;
     public static final int PAUSE_VOLUME_HEIGHT = 80;
     public static final int PAUSE_VOLUME_X = (LOGICAL_WIDTH - PAUSE_VOLUME_WIDTH) / 2;
     public static final int PAUSE_VOLUME_Y = 546;
-    // speaker icon area (clicking it toggles mute): 24% of the bar, matching the PNG's icon circle
+    // speaker icon (mute toggle) width
     public static final int PAUSE_VOLUME_ICON_WIDTH = PAUSE_VOLUME_WIDTH * 24 / 100;
 
     public static final int TEMPORARY_MENU_BUTTON_X = 100;
@@ -101,7 +101,6 @@ public final class GameConstants {
 
     public static final int TEMPORARY_GAMEPLAY_QUESTION_TEXT_HEIGHT = 250;
 
-    // ---- HUD (top of the gameplay screen) ----
     public static final int PAUSE_BUTTON_X = 18;
     public static final int PAUSE_BUTTON_Y = 18;
     public static final int PAUSE_BUTTON_SIZE = 56;
@@ -114,7 +113,6 @@ public final class GameConstants {
     public static final int MINIMAP_HEIGHT = 92;
     public static final int STATUS_MESSAGE_Y = 404;
 
-    // ---- Rules: scoring, timer, hints, consumables ----
     public static final double QUESTION_TIME_SECONDS = 60.0;
     public static final int SCORE_CORRECT = 100;
     public static final int SCORE_TIME_BONUS_PER_SECOND = 2;
@@ -123,18 +121,20 @@ public final class GameConstants {
     public static final double CONSUMABLE_DROP_CHANCE = 0.35;
     public static final int SCRIPTERS_SACRIFICE_SAFE_USES = 2;
     public static final double END_SCREEN_DELAY_SECONDS = 1.2;
+    // pre-game briefing (timer paused)
+    public static final double BRIEFING_SECONDS = 8.0;
+    public static final double BRIEFING_MIN_SECONDS = 0.6;   // can't be skipped before this
+    public static final double BRIEFING_FADE_SECONDS = 0.5;
     public static final double END_SCREEN_SECONDS = 6.0;
 
-    // ---- Consumable panel ----
     public static final int CONSUMABLE_PANEL_X = 590;
     public static final int CONSUMABLE_PANEL_Y = 425;
     public static final int CONSUMABLE_PANEL_WIDTH = 460;
     public static final int CONSUMABLE_PANEL_HEIGHT = 270;
     public static final int CONSUMABLE_ROW_HEIGHT = 72;
 
-    // ---- Audio ----
     public static final float MUSIC_VOLUME_LEVEL = 0.35f;
-    // main menu theme after "press any key": quieter so the menu button sounds stand out
+    // menu theme after the title screen
     public static final float MENU_MUSIC_DUCKED_LEVEL = 0.18f;
     public static final float SFX_VOLUME_LEVEL = 0.8f;          // all sound effects -20%
     public static final float HINT_PROMPT_VOLUME_LEVEL = 0.6f;  // hint prompt -40%

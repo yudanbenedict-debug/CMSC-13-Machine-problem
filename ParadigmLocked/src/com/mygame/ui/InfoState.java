@@ -13,10 +13,7 @@ import java.awt.event.MouseWheelEvent;
 import java.util.List;
 import java.util.function.Consumer;
 
-/*
-    Scrollable overlay (How to Play / Credits). BACK returns to wherever it was opened from
-    (main menu or pause menu). openSound plays every time the overlay is opened.
- */
+// Scrollable overlay; BACK returns to the menu or pause menu it was opened from.
 public abstract class InfoState implements StateMethods {
     private final GameStateManager stateManager;
     private final String title;
@@ -35,7 +32,6 @@ public abstract class InfoState implements StateMethods {
         this.openSound = openSound;
     }
 
-    /** What to draw behind the overlay when opened from the menu / from the pause menu. */
     public void setBackdrops(Consumer<Graphics2D> menuBackdrop, Consumer<Graphics2D> gameBackdrop) {
         this.menuBackdrop = menuBackdrop;
         this.gameBackdrop = gameBackdrop;

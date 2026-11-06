@@ -22,7 +22,7 @@ public final class LoadingState implements StateMethods {
     public LoadingState(Runnable completionAction) {
         this.assetLoader = new AssetLoader();
         this.completionAction = completionAction;
-        // the random loading art also picks your team: Dark Web King art = you are the King's team
+        // the loading art picks your team
         Faction team = ThreadLocalRandom.current().nextBoolean() ? Faction.DARKWEBKING : Faction.IMMUTABLEMOTHER;
         Faction.setPlayer(team);
         this.backgroundKey = team.loadingBackgroundKey;

@@ -1,13 +1,6 @@
 package com.mygame.ui;
 
-/*
-    One piece of content in the scrollable How to Play / Credits overlays.
-    HEADING     big gold title (section)
-    SUBHEADING  smaller blue title
-    BODY        normal paragraph text (wrapped)
-    IMAGE       a picture from AssetCache, centered, with an optional caption
-    GAP         empty vertical space
- */
+// One content block (heading, text, image or gap) in How to Play / Credits.
 public final class InfoBlock {
     public enum Kind { HEADING, SUBHEADING, BODY, IMAGE, GAP }
 

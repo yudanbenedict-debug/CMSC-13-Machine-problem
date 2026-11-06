@@ -18,13 +18,7 @@ import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-/*
-    Audio cache. Java Sound cannot decode MP3, so the game loads the .wav copies in assets/audios.
-    - Every sound owns a small pool of Clips. playSFX picks the next free clip, so quick repeats
-      (radial hover clicks, menu hovers) STACK instead of cutting each other off.
-    - Names starting with THEME / ending with _THEME are music: they loop and play at
-      MUSIC_VOLUME_LEVEL so they sit quietly under everything else.
- */
+// Audio cache (WAV only); each sound has a clip pool so repeats overlap.
 public class SoundManager {
     private static final Map<String, Clip[]> sounds = new ConcurrentHashMap<>();
     private static final Map<String, Integer> nextClip = new ConcurrentHashMap<>();
@@ -36,7 +30,6 @@ public class SoundManager {
         load(name, path, poolSizeFor(name));
     }
 
-    // load a sound into the cache with `poolSize` clips that can play at the same time
     public static void load(String name, String path, int poolSize) {
         try (InputStream raw = open(path)) {
             if (raw == null) {
@@ -100,7 +93,6 @@ public class SoundManager {
         return name.startsWith("THEME") || name.endsWith("_THEME");
     }
 
-    // per-track level overrides (e.g. the menu theme gets quieter after the title screen)
     private static final Map<String, Float> levelOverrides = new ConcurrentHashMap<>();
 
     private static float volumeFor(String name) {
@@ -120,7 +112,7 @@ public class SoundManager {
         return masterVolume * GameConstants.SFX_VOLUME_LEVEL;
     }
 
-    /** Sets a fixed level (0-1, before master volume) for one sound/track and applies it now. */
+    // Overrides one sound's level (before master volume).
     public static void setLevel(String name, float level) {
         levelOverrides.put(name, level);
         Clip[] pool = sounds.get(name);
@@ -131,7 +123,6 @@ public class SoundManager {
         }
     }
 
-    // play a short SFX; overlapping calls use the next clip in the pool so they stack
     public static void playSFX(String name) {
         Clip[] pool = sounds.get(name);
         if (pool == null) {
@@ -153,7 +144,6 @@ public class SoundManager {
         chosen.start();
     }
 
-    // plays one random sound out of PREFIX_00, PREFIX_01, ... (e.g. UI_MENU_HOVER)
     public static void playRandomSFX(String prefix) {
         String[] matches = sounds.keySet().stream().filter(key -> key.startsWith(prefix))
             .sorted().toArray(String[]::new);
@@ -166,7 +156,7 @@ public class SoundManager {
         playRandomSFX("UI_MENU_HOVER");
     }
 
-    // play looping BGM (does nothing when that track is already playing)
+    // loops music; no-op if the track is already playing
     public static void playMusic(String name) {
         if (name.equals(activeMusicName) && activeMusic != null && activeMusic.isRunning()) {
             return;
@@ -209,7 +199,7 @@ public class SoundManager {
             return;
         }
         FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
-        // convert volume (0-1) to dB, clamped to what the clip supports (log10(0) would be -infinity)
+        // volume -> dB, clamped (log10(0) is -infinity)
         float dB = volume <= 0.0001f ? gainControl.getMinimum() : 20f * (float) Math.log10(volume);
         gainControl.setValue(Math.max(gainControl.getMinimum(), Math.min(gainControl.getMaximum(), dB)));
     }

@@ -81,7 +81,6 @@ public class TemporaryRadialMenu {
         return active < 0 ? null : options[active];
     }
 
-    /** Programmatically opens an option (e.g. jump back to ANSWER after using a consumable). */
     public void select(Option option) {
         for (int index = 0; index < options.length; index++) {
             if (options[index] == option) {
@@ -140,7 +139,7 @@ public class TemporaryRadialMenu {
     public void mouseMoved(Point point) {
         int picked = pick(point.x, point.y);
         if (picked >= 0 && picked != hovered) {
-            // pooled clip, so fast sweeps across the options stack into a clicking ratchet
+            // pooled clip, so quick sweeps stack
             SoundManager.playSFX("RADIAL_CHOICES_HOVER_01");
         }
         hovered = picked;
@@ -246,7 +245,7 @@ public class TemporaryRadialMenu {
         Color glow = index == active ? UiText.DEFAULT_GLOW
             : index == hovered ? new Color(255, 236, 170, 140) : null;
         if (option == Option.CONTACT_HELP) {
-            // "Contact" is left-aligned with the start of "Declarative Dynamo" (2pt smaller than before)
+            // "Contact" left-aligned with "Declarative Dynamo"
             Font nameFont = UiFontManager.dorris(14, Font.BOLD);
             float nameX = -UiText.width("Declarative Dynamo", nameFont) / 2f;
             UiText.draw(graphics, "Contact", UiFontManager.dorris(10, Font.BOLD), nameX, -6, Color.WHITE, glow);

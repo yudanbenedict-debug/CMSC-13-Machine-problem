@@ -16,13 +16,7 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.function.Predicate;
 
-/*
-    Consumable option panel: three rows of  [picture]  name  amount.
-    - CONSUMABLE_BORDER frames the whole list.
-    - Each row uses CONSUMABLE_CHOICES_BORDER, or CONSUMABLE_CHOICES_BORDER_SELECTED when selected.
-    - Click a row (its name) once to select it (text glows), click it again to use it.
-    - A depleted Scripter's Sacrifice shows a DISCARD button next to its row.
- */
+// Consumable list: click a row to select it, click again to use it.
 public final class ConsumablePanel {
     private static final Color TEXT = new Color(222, 235, 230);
     private static final Color DIM = new Color(120, 120, 120);
@@ -58,7 +52,6 @@ public final class ConsumablePanel {
 
     private static Rectangle rowBounds(int row) {
         Rectangle panel = panelBounds();
-        // rows sit inside the two side ornaments of CONSUMABLE_BORDER
         return new Rectangle(panel.x + 42, panel.y + 22 + row * GameConstants.CONSUMABLE_ROW_HEIGHT,
             panel.width - 84, GameConstants.CONSUMABLE_ROW_HEIGHT);
     }
@@ -87,11 +80,7 @@ public final class ConsumablePanel {
         }
     }
 
-    /*
-        CONSUMABLE_BORDER is a square (390x390) image with an ornament on each side. Stretching it to the
-        wide panel squashed and blurred the ornaments, so each half is drawn with the SAME x/y scale
-        (no distortion, only downscaled = sharp) and pinned to the panel's left / right edge.
-     */
+    // Draws each half of the square border at a uniform scale so it stays sharp.
     private static void drawFrame(Graphics2D g, Rectangle panel) {
         BufferedImage frame = AssetCache.get("CONSUMABLE_BORDER");
         if (frame == null) {
@@ -149,7 +138,6 @@ public final class ConsumablePanel {
         return "x" + count;
     }
 
-    /** One-line hint for the status bar while this panel is open. */
     public String statusText() {
         if (selected == null) {
             return "Pick a consumable. Click again to use it.";

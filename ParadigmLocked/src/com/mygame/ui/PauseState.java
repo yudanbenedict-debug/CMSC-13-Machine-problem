@@ -22,7 +22,6 @@ public final class PauseState implements StateMethods {
     private boolean muteHovered;
     private int hoveredOption = -1;
 
-    /** backdrop draws the frozen gameplay behind the pause overlay (can be null). */
     public PauseState(GameStateManager stateManager, Consumer<Graphics2D> backdrop) {
         this.stateManager = stateManager;
         this.backdrop = backdrop;

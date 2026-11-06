@@ -19,11 +19,7 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.function.Consumer;
 
-/*
-    WON / LOST overlay. Uses the OVERLAY_<SIDE>_WIN / _LOSE assets of the side you fight for.
-    It's a timed showcase: it fades in over the frozen gameplay, ignores input,
-    then returns to the main menu after END_SCREEN_SECONDS.
- */
+// Timed WIN/LOSE overlay that returns to the menu.
 public final class EndScreenState implements StateMethods {
     private final GameStateManager stateManager;
     private boolean won;

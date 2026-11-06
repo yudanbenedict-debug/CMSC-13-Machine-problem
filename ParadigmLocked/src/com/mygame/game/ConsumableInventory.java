@@ -5,12 +5,7 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.Random;
 
-/*
-    Holds how many of each consumable the player owns.
-    Scripter's Sacrifice is special: each one picked up adds SCRIPTERS_SACRIFICE_SAFE_USES "safe" uses.
-    When the safe uses run out the item is NOT removed: it can still be used (double damage), but
-    while you keep it every turn deals 1 damage to you, until you discard it.
- */
+// Owned consumables; Scripter's Sacrifice hurts you each turn after its safe uses until discarded.
 public final class ConsumableInventory {
     private final Map<Consumable, Integer> counts = new EnumMap<>(Consumable.class);
     private final Random random = new Random();
@@ -23,7 +18,7 @@ public final class ConsumableInventory {
         }
     }
 
-    /** Weighted random pick: NullSlinger 60, Scripter's Sacrifice 28, Refresher 12. */
+    // Weighted pick: 60 / 28 / 12.
     public Consumable rollDrop() {
         int total = 0;
         for (Consumable consumable : Consumable.values()) {
@@ -53,7 +48,7 @@ public final class ConsumableInventory {
         }
     }
 
-    /** Amount shown in the panel (for Scripter's Sacrifice: remaining safe uses). */
+    // Scripter's Sacrifice shows its remaining safe uses.
     public int count(Consumable consumable) {
         return counts.get(consumable);
     }
@@ -65,14 +60,13 @@ public final class ConsumableInventory {
         return counts.get(consumable) > 0;
     }
 
-    /** Spends one use. Returns false if the player doesn't have it. */
     public boolean consume(Consumable consumable) {
         if (!canUse(consumable)) {
             return false;
         }
         int current = counts.get(consumable);
         if (consumable == Consumable.SCRIPTERS_SACRIFICE && current == 0) {
-            scriptersOverused = true; // used past the suggested amount
+            scriptersOverused = true;
             return true;
         }
         counts.put(consumable, current - 1);
@@ -83,12 +77,11 @@ public final class ConsumableInventory {
         return scriptersOwned;
     }
 
-    /** Safe uses spent but the item is still kept: it can be discarded. */
     public boolean scriptersDepleted() {
         return scriptersOwned && counts.get(Consumable.SCRIPTERS_SACRIFICE) == 0;
     }
 
-    /** True while an overused Scripter's Sacrifice is kept: you take 1 damage every turn. */
+    // Overused and still kept: 1 self-damage per turn.
     public boolean scriptersPunishing() {
         return scriptersOwned && scriptersOverused;
     }
