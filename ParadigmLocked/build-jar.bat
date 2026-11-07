@@ -9,7 +9,7 @@ if not exist "%OUT_DIR%" mkdir "%OUT_DIR%"
 
 echo Compiling...
 dir /s /b src\*.java > build\sources.txt
-javac -nowarn -encoding UTF-8 -d build\classes -cp "lib/*" @build\sources.txt || exit /b 1
+javac --release 17 -nowarn -encoding UTF-8 -d build\classes -cp "lib/*" @build\sources.txt || exit /b 1
 
 echo Bundling libraries...
 pushd build\classes

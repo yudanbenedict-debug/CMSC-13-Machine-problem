@@ -7,7 +7,7 @@ rm -rf build
 mkdir -p build/classes "$OUT_DIR"
 
 echo "Compiling..."
-javac -nowarn -encoding UTF-8 -d build/classes -cp "lib/*" $(find src -name "*.java")
+javac --release 17 -nowarn -encoding UTF-8 -d build/classes -cp "lib/*" $(find src -name "*.java")
 
 echo "Bundling libraries..."
 (cd build/classes && for lib in ../../lib/*.jar; do jar xf "$lib"; done && rm -rf META-INF)
