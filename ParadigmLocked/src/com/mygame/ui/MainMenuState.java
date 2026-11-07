@@ -72,14 +72,6 @@ public class MainMenuState implements StateMethods {
                     UiLayout.MENU_LOGO_WIDTH,
                     UiLayout.MENU_LOGO_HEIGHT, null);
         }
-        // if (logo == null) {
-        //     g.setColor(new Color(228, 241, 235));
-        //     g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 54));
-        //     g.drawString("BREAK THE PARADIGMLOCK.", 100, 150);
-        //     g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 25));
-        //     g.setColor(new Color(154, 201, 193));
-        //     g.drawString("ASCEND, PROGRAMMER!", 104, 195);
-        // }
     }
 
     @Override public void update(double dt) { buttonsFade = Math.min(1, buttonsFade + dt / 0.7); }

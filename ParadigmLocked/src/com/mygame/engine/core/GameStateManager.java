@@ -4,11 +4,7 @@ import java.awt.Graphics2D;
 import java.util.EnumMap;
 import java.util.Map;
 
-/*
-    Small manager that delegates update/draw/input events to the current GameState handler.
-    Once a handler implements all StateMethods, it can be called to hold a certain State
-    It connects both logics, allowing a certain class to control a certain state.
- */
+// this forwards update, draw and input events to the handler of the current game state
 
 public class GameStateManager {
     private GameState current;

@@ -30,7 +30,7 @@ import java.awt.event.MouseEvent;
 import javax.swing.SwingUtilities;
 
 // Gameplay screen: draws the match and turns input into actions; the rules live in Match.
-public class GameplayState implements StateMethods {
+public final class GameplayState implements StateMethods {
     private static final Color TEXT = new Color(222, 235, 230);
     private static final Color GOOD = new Color(0x7FB05A);
     private static final Color BAD = new Color(0xD05A5A);

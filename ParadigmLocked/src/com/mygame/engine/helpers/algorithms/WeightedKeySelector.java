@@ -6,16 +6,7 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Random;
 import java.util.TreeMap;
-//TODO: i'll be adding other randomization for the question selection.
-/*
-    Inverse-Weighted Random Selection with Dynamic Branching algorithm
-    READ ts if u wanna know abt the algorithm:
-
-    https://stackoverflow.com/questions/17250568/randomly-choosing-from-a-list-with-weighted-probabilities
-
-    TLDR: basically a randomization algorithm that is based on frequency.
-     Changed it to weighted key selector cus its not a question algorithm, this can be reused for other stuff
-*/
+// this is a weighted random key picker based on how often each key was used (stackoverflow.com/questions/17250568)
 public class WeightedKeySelector<K, V> {
     //copy of the original map, will be used in questionselector.
     private final Map<K, List<V>> originalMap;

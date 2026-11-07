@@ -8,21 +8,7 @@ import java.awt.event.MouseEvent;
 import java.util.function.Function;
 import javax.swing.JComponent;
 
-/*
-    Streamlined Universal Input Handling:
-    How we got here:
-    Idea 1: reuse keyboard and mouseinput handling per state
-    Problem 1: We moved away from state handling to displaySurface
-    Display Surface is a heirarchy above states (it handles scaling) before
-    being sent to statemanager
-    Solution: Streamline inputs into inputhandler with the same MouseInput logic
-    Now looks like this:
-    Display Surface ->
-        -> InputHandler
-            -> Coordinate Conversions
-                -> GameState Manager -> 
-                    -> Running Gamestate and Gameloop
-    */
+// this sends all input DisplaySurface -> InputHandler (logical coordinates) -> GameStateManager -> current state
 public class InputHandler extends MouseAdapter implements KeyListener {
     private final GameStateManager stateManager;
     private final Function<MouseEvent, MouseEvent> mouseEventTranslator;

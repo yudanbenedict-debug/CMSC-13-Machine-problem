@@ -1,8 +1,6 @@
 package com.mygame.engine.core;
 
-/*
-  Our Global Game States. These are the main Gameplay flow drivers.
- */
+// these are the global game states that drive the gameplay flow
 
 public enum GameState {
   LOADING,
