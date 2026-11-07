@@ -9,8 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class UiFontManager {
     private static final Map<String, Font> FONTS = new ConcurrentHashMap<>();
-    // deriveFont() creates a new Font object every call, and the UI calls it many times per frame.
-    // Derived fonts are cached by key|style|size so each size is only created once.
+    // derived fonts are cached by key|style|size so each size is only created once
     private static final Map<String, Font> DERIVED = new ConcurrentHashMap<>();
     private static final Font FALLBACK = new Font(Font.SERIF, Font.PLAIN, 18);
 

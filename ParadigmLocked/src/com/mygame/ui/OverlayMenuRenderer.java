@@ -156,7 +156,7 @@ public final class OverlayMenuRenderer {
             Color glow = item.block.kind == InfoBlock.Kind.HEADING ? new Color(229, 190, 94, 90) : null;
             drawCenteredBlock(clipped, item.text, centerX, top, color, glow);
             if (item.block.kind == InfoBlock.Kind.HEADING) {
-                int lineY = top + (int) item.height + 3;
+                int lineY = top + item.height + 3;
                 clipped.setColor(new Color(229, 190, 94, 120));
                 clipped.drawLine((int) centerX - 120, lineY, (int) centerX + 120, lineY);
             }

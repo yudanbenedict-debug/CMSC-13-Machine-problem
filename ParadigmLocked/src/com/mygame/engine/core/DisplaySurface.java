@@ -36,8 +36,7 @@ public class DisplaySurface extends JPanel {
         paintImmediately(0, 0, getWidth(), getHeight());
     }
 
-    // fix for bleeding when refreshing fullscreen
-    // this is called by a listener in gamewindow so it remains active the entire time negligble performance effect
+    // this refreshes the scale when the window changes (fixes bleeding when toggling fullscreen)
     public void refreshViewport() {
         calculateViewport();
         revalidate();

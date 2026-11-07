@@ -1,5 +1,5 @@
 package com.mygame.engine.helpers.gamequestions;
-//TODO: protected only so other class inside the same package can access it immediately.
+// this is one question loaded from the CSV files
 public class Question {
     public final String id;
     public final String category;

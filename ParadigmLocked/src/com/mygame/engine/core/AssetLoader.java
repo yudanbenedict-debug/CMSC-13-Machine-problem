@@ -9,7 +9,6 @@ import java.util.List;
 public final class AssetLoader {
     private static final String[][] FONTS = {
         {"DORRIS", "fonts/Dorris Regular.ttf"},
-        {"OPEN_SAUCE_SANS_BOLD", "fonts/OpenSauceSans-Bold.ttf"},
         {"OPEN_SAUCE_SANS_LIGHT", "fonts/OpenSauceSans-Light.ttf"},
         {"ARPONA", "fonts/Fontspring-DEMO-arpona-bold.otf"},
         {"NOTO_SERIF", "fonts/NotoSerifEthiopic-VariableFont_wdth,wght.ttf"},

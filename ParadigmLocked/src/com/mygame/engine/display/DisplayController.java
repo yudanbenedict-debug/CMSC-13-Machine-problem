@@ -4,11 +4,7 @@ import java.awt.GraphicsDevice;
 import java.awt.Rectangle;
 import javax.swing.JFrame;
 
-/*
-    Display controller made to offhand the methods building up in GameWindow
-    The fullscreen logic, boundaries and window boundaries and display logic
-    are all ran in displaycontroller before being sent to GameWindow
-*/
+// this handles fullscreen and the window/display bounds so GameWindow stays small
 public class DisplayController {
     private final JFrame window;
     private boolean fullscreen;

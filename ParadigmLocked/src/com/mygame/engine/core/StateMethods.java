@@ -5,9 +5,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
-/*
- * Interface for state-specific behavior (menu, playing, paused, etc.).
- */
+// every game state (menu, playing, paused, etc.) implements these methods
 
 public interface StateMethods {
     //draw components
