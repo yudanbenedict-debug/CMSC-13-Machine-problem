@@ -1,6 +1,7 @@
 package com.mygame.ui;
 
 import com.mygame.engine.core.GameStateManager;
+import com.mygame.engine.core.Sfx;
 import java.util.List;
 
 public class CreditsState extends InfoState {
@@ -18,6 +19,6 @@ public class CreditsState extends InfoState {
             InfoBlock.gap(10),
             InfoBlock.subheading("CMSC 13: Survey of Programming Paradigms"),
             InfoBlock.body("University of the Philippines Tacloban College")
-        ), "CREDIT_MENU_ONSELECT");
+        ), Sfx.CREDIT_MENU_ONSELECT);
     }
 }

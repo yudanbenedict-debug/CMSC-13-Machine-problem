@@ -27,6 +27,7 @@ public class InputHandler extends MouseAdapter implements KeyListener {
     private final GameStateManager stateManager;
     private final Function<MouseEvent, MouseEvent> mouseEventTranslator;
     private final Runnable toggleFullscreen;
+    private Runnable toggleFpsCounter = () -> { };
 
     public InputHandler(JComponent component, GameStateManager stateManager,
                         Function<MouseEvent, MouseEvent> mouseEventTranslator,
@@ -76,7 +77,15 @@ public class InputHandler extends MouseAdapter implements KeyListener {
             toggleFullscreen.run();
             return;
         }
+        if (event.getKeyCode() == KeyEvent.VK_F3) {
+            toggleFpsCounter.run();
+            return;
+        }
         stateManager.keyPressed(event);
+    }
+
+    public void setToggleFpsCounter(Runnable toggleFpsCounter) {
+        this.toggleFpsCounter = toggleFpsCounter;
     }
 
     @Override

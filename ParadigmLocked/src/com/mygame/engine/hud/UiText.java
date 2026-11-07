@@ -107,25 +107,42 @@ public final class UiText {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         if (glow != null) {
-            Shape outline = layout.getOutline(AffineTransform.getTranslateInstance(x, baseline));
-            java.awt.Stroke oldStroke = g.getStroke();
-            // glow scales with the text size
-            float scale = Math.max(0.35f, Math.min(1.5f, layout.getAscent() / 20f));
-            float[] widths = {11f * scale, 7f * scale, 3.5f * scale};
+            Shape[] rings = glowShapes(layout);
             int[] alphas = {28, 55, 95};
-            for (int index = 0; index < widths.length; index++) {
-                g.setStroke(new BasicStroke(widths[index], BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            AffineTransform oldTransform = g.getTransform();
+            g.translate(x, baseline);
+            for (int index = 0; index < rings.length; index++) {
                 g.setColor(new Color(glow.getRed(), glow.getGreen(), glow.getBlue(),
                     alphas[index] * glow.getAlpha() / 255));
-                g.draw(outline);
+                g.fill(rings[index]);
             }
-            g.setStroke(oldStroke);
+            g.setTransform(oldTransform);
         }
         g.setColor(color);
         layout.draw(g, x, baseline);
         if (oldAa != null) {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, oldAa);
         }
+    }
+
+    private static final Map<TextLayout, Shape[]> GLOW_CACHE = Collections.synchronizedMap(new java.util.WeakHashMap<>());
+
+    // the three stroked outlines behind glowing text, built once per text layout instead of every frame
+    private static Shape[] glowShapes(TextLayout layout) {
+        Shape[] cached = GLOW_CACHE.get(layout);
+        if (cached != null) {
+            return cached;
+        }
+        Shape outline = layout.getOutline(null);
+        float scale = Math.max(0.35f, Math.min(1.5f, layout.getAscent() / 20f)); // glow scales with text size
+        float[] widths = {11f * scale, 7f * scale, 3.5f * scale};
+        Shape[] rings = new Shape[widths.length];
+        for (int index = 0; index < widths.length; index++) {
+            rings[index] = new java.awt.geom.Path2D.Float(new BasicStroke(widths[index], BasicStroke.CAP_ROUND,
+                BasicStroke.JOIN_ROUND).createStrokedShape(outline));
+        }
+        GLOW_CACHE.put(layout, rings);
+        return rings;
     }
 
     public static Block wrap(String text, Font font, int maxWidth, float lineSpacing, int maxLines) {

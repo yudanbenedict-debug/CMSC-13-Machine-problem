@@ -2,13 +2,10 @@ package com.mygame.engine.core;
 
 import com.mygame.engine.helpers.constants.GameConstants;
 import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
+import java.util.EnumMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -18,113 +15,80 @@ import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-// Audio cache (WAV only); each sound has a clip pool so repeats overlap.
-public class SoundManager {
-    private static final Map<String, Clip[]> sounds = new ConcurrentHashMap<>();
-    private static final Map<String, Integer> nextClip = new ConcurrentHashMap<>();
-    private static volatile Clip activeMusic;
-    private static volatile String activeMusicName;
-    private static float masterVolume = 0.6f;  // 0.0 to 1.0
+// Audio cache (WAV only); each sound has a clip pool so quick repeats overlap instead of cutting off.
+public final class SoundManager {
+    private static final Sfx[] MENU_HOVERS = {Sfx.UI_MENU_HOVER_00, Sfx.UI_MENU_HOVER_01, Sfx.UI_MENU_HOVER_02};
+    private static final Map<Sfx, Clip[]> SOUNDS = new EnumMap<>(Sfx.class);
+    private static final Map<Sfx, Float> LEVEL_OVERRIDES = new EnumMap<>(Sfx.class);
+    private static final Map<Sfx, Integer> NEXT_CLIP = new EnumMap<>(Sfx.class);
+    private static Sfx activeMusic;
+    private static float masterVolume = 0.6f;
 
-    public static void load(String name, String path) {
-        load(name, path, poolSizeFor(name));
+    private SoundManager() {
     }
 
-    public static void load(String name, String path, int poolSize) {
-        try (InputStream raw = open(path)) {
+    public static void load(Sfx sound) {
+        try (InputStream raw = Resources.open(sound.path())) {
             if (raw == null) {
-                System.err.println("Could not find sound resource: " + path);
+                System.err.println("[SoundManager] Missing sound: " + sound.path());
                 return;
             }
-            AudioInputStream ais = AudioSystem.getAudioInputStream(new BufferedInputStream(raw));
-            AudioFormat format = ais.getFormat();
-            byte[] data = readAll(ais);
-            Clip[] pool = new Clip[Math.max(1, poolSize)];
+            AudioInputStream stream = AudioSystem.getAudioInputStream(new BufferedInputStream(raw));
+            AudioFormat format = stream.getFormat();
+            byte[] data = stream.readAllBytes();
+            Clip[] pool = new Clip[poolSize(sound)];
             for (int index = 0; index < pool.length; index++) {
                 pool[index] = AudioSystem.getClip();
                 pool[index].open(format, data, 0, data.length);
-                applyVolumeToClip(pool[index], volumeFor(name));
+                applyVolume(pool[index], volumeFor(sound));
             }
-            sounds.put(name, pool);
+            SOUNDS.put(sound, pool);
         } catch (IOException | LineUnavailableException | UnsupportedAudioFileException
                  | IllegalArgumentException e) {
-            System.err.println("Error loading sound: " + path + " - " + e.getMessage());
+            System.err.println("[SoundManager] Failed to load " + sound.path() + ": " + e.getMessage());
         }
     }
 
-    private static InputStream open(String path) throws IOException {
-        String resourcePath = path.startsWith("/") ? path : "/" + path;
-        InputStream is = SoundManager.class.getResourceAsStream(resourcePath);
-        if (is != null) {
-            return is;
+    private static int poolSize(Sfx sound) {
+        switch (sound) {
+            case RADIAL_CHOICES_HOVER_01:
+                return 6;
+            case UI_MENU_HOVER_00:
+            case UI_MENU_HOVER_01:
+            case UI_MENU_HOVER_02:
+            case DAMAGE_TICK:
+                return 3;
+            default:
+                return 1;
         }
-        String rawPath = resourcePath.substring(1);
-        File rawFile = new File("assets/" + rawPath);
-        if (!rawFile.exists()) {
-            rawFile = new File(rawPath);
-        }
-        return rawFile.exists() ? Files.newInputStream(rawFile.toPath()) : null;
     }
 
-    private static byte[] readAll(AudioInputStream ais) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        byte[] buffer = new byte[8192];
-        int read;
-        while ((read = ais.read(buffer)) > 0) {
-            out.write(buffer, 0, read);
-        }
-        return out.toByteArray();
-    }
-
-    private static int poolSizeFor(String name) {
-        if (isMusic(name)) {
-            return 1;
-        }
-        if (name.startsWith("RADIAL_CHOICES_HOVER")) {
-            return 6;
-        }
-        if (name.startsWith("UI_MENU_HOVER") || name.equals("DAMAGE_TICK")) {
-            return 3;
-        }
-        return 1;
-    }
-
-    private static boolean isMusic(String name) {
-        return name.startsWith("THEME") || name.endsWith("_THEME");
-    }
-
-    private static final Map<String, Float> levelOverrides = new ConcurrentHashMap<>();
-
-    private static float volumeFor(String name) {
-        Float override = levelOverrides.get(name);
+    private static float volumeFor(Sfx sound) {
+        Float override = LEVEL_OVERRIDES.get(sound);
         if (override != null) {
             return masterVolume * override;
         }
-        if (isMusic(name)) {
+        if (sound.isMusic()) {
             return masterVolume * GameConstants.MUSIC_VOLUME_LEVEL;
         }
-        if (name.equals("HINT_PROMPT")) {
+        if (sound == Sfx.HINT_PROMPT) {
             return masterVolume * GameConstants.HINT_PROMPT_VOLUME_LEVEL;
         }
-        if (name.startsWith("RADIAL_CHOICES_HOVER")) {
+        if (sound == Sfx.RADIAL_CHOICES_HOVER_01) {
             return masterVolume * GameConstants.RADIAL_HOVER_VOLUME_LEVEL;
         }
         return masterVolume * GameConstants.SFX_VOLUME_LEVEL;
     }
 
     // Overrides one sound's level (before master volume).
-    public static void setLevel(String name, float level) {
-        levelOverrides.put(name, level);
-        Clip[] pool = sounds.get(name);
-        if (pool != null) {
-            for (Clip clip : pool) {
-                applyVolumeToClip(clip, volumeFor(name));
-            }
-        }
+    public static void setLevel(Sfx sound, float level) {
+        LEVEL_OVERRIDES.put(sound, level);
+        applyVolume(sound);
     }
 
-    public static void playSFX(String name) {
-        Clip[] pool = sounds.get(name);
+    // Plays the next free clip of the pool (or restarts the oldest), so repeats stack.
+    public static void playSFX(Sfx sound) {
+        Clip[] pool = SOUNDS.get(sound);
         if (pool == null) {
             return;
         }
@@ -136,71 +100,67 @@ public class SoundManager {
             }
         }
         if (chosen == null) {
-            int index = nextClip.merge(name, 1, Integer::sum) % pool.length;
-            chosen = pool[index];
+            chosen = pool[NEXT_CLIP.merge(sound, 1, Integer::sum) % pool.length];
             chosen.stop();
         }
         chosen.setFramePosition(0);
         chosen.start();
     }
 
-    public static void playRandomSFX(String prefix) {
-        String[] matches = sounds.keySet().stream().filter(key -> key.startsWith(prefix))
-            .sorted().toArray(String[]::new);
-        if (matches.length > 0) {
-            playSFX(matches[ThreadLocalRandom.current().nextInt(matches.length)]);
-        }
-    }
-
     public static void playMenuHover() {
-        playRandomSFX("UI_MENU_HOVER");
+        playSFX(MENU_HOVERS[ThreadLocalRandom.current().nextInt(MENU_HOVERS.length)]);
     }
 
-    // loops music; no-op if the track is already playing
-    public static void playMusic(String name) {
-        if (name.equals(activeMusicName) && activeMusic != null && activeMusic.isRunning()) {
+    // Loops music; does nothing if that track is already playing.
+    public static void playMusic(Sfx track) {
+        Clip current = activeMusic == null ? null : SOUNDS.get(activeMusic)[0];
+        if (track == activeMusic && current != null && current.isRunning()) {
             return;
         }
         stopAllMusic();
-        Clip[] pool = sounds.get(name);
-        activeMusic = pool == null ? null : pool[0];
-        activeMusicName = pool == null ? null : name;
-        if (activeMusic != null) {
-            applyVolumeToClip(activeMusic, volumeFor(name));
-            activeMusic.setFramePosition(0);
-            activeMusic.loop(Clip.LOOP_CONTINUOUSLY);
+        Clip[] pool = SOUNDS.get(track);
+        if (pool != null) {
+            activeMusic = track;
+            applyVolume(pool[0], volumeFor(track));
+            pool[0].setFramePosition(0);
+            pool[0].loop(Clip.LOOP_CONTINUOUSLY);
         }
     }
 
     public static void stopAllMusic() {
-        if (activeMusic != null) {
-            activeMusic.stop();
+        if (activeMusic != null && SOUNDS.get(activeMusic) != null) {
+            SOUNDS.get(activeMusic)[0].stop();
         }
         activeMusic = null;
-        activeMusicName = null;
     }
 
     public static float getVolumeMaster() {
         return masterVolume;
     }
 
-    // set master volume for all sounds and music (0.0 to 1.0)
     public static void setVolumeMaster(float volume) {
         masterVolume = Math.max(0.0f, Math.min(1.0f, volume));
-        for (Map.Entry<String, Clip[]> entry : sounds.entrySet()) {
-            for (Clip clip : entry.getValue()) {
-                applyVolumeToClip(clip, volumeFor(entry.getKey()));
+        for (Sfx sound : SOUNDS.keySet()) {
+            applyVolume(sound);
+        }
+    }
+
+    private static void applyVolume(Sfx sound) {
+        Clip[] pool = SOUNDS.get(sound);
+        if (pool != null) {
+            for (Clip clip : pool) {
+                applyVolume(clip, volumeFor(sound));
             }
         }
     }
 
-    private static void applyVolumeToClip(Clip clip, float volume) {
-        if (clip == null || !clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+    private static void applyVolume(Clip clip, float volume) {
+        if (!clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
             return;
         }
-        FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+        FloatControl gain = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
         // volume -> dB, clamped (log10(0) is -infinity)
-        float dB = volume <= 0.0001f ? gainControl.getMinimum() : 20f * (float) Math.log10(volume);
-        gainControl.setValue(Math.max(gainControl.getMinimum(), Math.min(gainControl.getMaximum(), dB)));
+        float dB = volume <= 0.0001f ? gain.getMinimum() : 20f * (float) Math.log10(volume);
+        gain.setValue(Math.max(gain.getMinimum(), Math.min(gain.getMaximum(), dB)));
     }
 }

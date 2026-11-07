@@ -1,16 +1,16 @@
 package com.mygame.engine.hud;
 
 import com.mygame.engine.core.AssetCache;
-import com.mygame.engine.helpers.constants.GameConstants;
+import com.mygame.engine.core.Img;
+import com.mygame.engine.helpers.constants.UiLayout;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
 
-public final class TemporaryUiRenderer {
-    private static final Color BACKGROUND = new Color(15, 22, 30);
+public final class UiRenderer {
     private static final Color TEXT = new Color(222, 235, 230);
     private static final Color DIM_TEXT = new Color(110, 110, 110);
     private static final Color CORRECT = new Color(0x7FB05A);
@@ -18,13 +18,9 @@ public final class TemporaryUiRenderer {
     public static final Color ABANDON_HIGHLIGHT = new Color(0xFA5555);
     private static final Color HOVER_GLOW = new Color(255, 236, 170, 150);
 
-    private TemporaryUiRenderer() {
+    private UiRenderer() {
     }
 
-    public static void drawScreenBackground(Graphics2D g) {
-        g.setColor(BACKGROUND);
-        g.fillRect(0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT);
-    }
 
     public static void drawButton(Graphics2D g, Rectangle bounds, String label,
                                   boolean hovered, boolean pressed, boolean enabled) {
@@ -44,20 +40,12 @@ public final class TemporaryUiRenderer {
 
     public static void drawGameplayQuestion(Graphics2D g, String question) {
         UiText.Block block = UiText.fit(question, UiFontManager.question(28, Font.PLAIN), 28, 13,
-            GameConstants.TEMPORARY_GAMEPLAY_QUESTION_TEXT_WIDTH,
-            GameConstants.TEMPORARY_GAMEPLAY_QUESTION_TEXT_HEIGHT, 1.05f);
-        UiText.drawBlock(g, block, GameConstants.TEMPORARY_GAMEPLAY_QUESTION_TEXT_X,
-            GameConstants.TEMPORARY_GAMEPLAY_QUESTION_TEXT_Y, TEXT, null);
+            UiLayout.QUESTION_WIDTH,
+            UiLayout.QUESTION_HEIGHT, 1.05f);
+        UiText.drawBlock(g, block, UiLayout.QUESTION_X,
+            UiLayout.QUESTION_Y, TEXT, null);
     }
 
-    public static void drawOptionState(Graphics2D g, String title, String description) {
-        int x = GameConstants.TEMPORARY_GAMEPLAY_CHOICES_PANEL_X + 30;
-        int y = GameConstants.TEMPORARY_GAMEPLAY_CHOICES_PANEL_Y;
-        UiText.draw(g, title.replace('\n', ' '), UiFontManager.dorris(26, Font.BOLD), x, y + 50, TEXT);
-        UiText.Block block = UiText.wrap(description, UiFontManager.dorris(18, Font.PLAIN),
-            GameConstants.TEMPORARY_GAMEPLAY_CHOICES_PANEL_WIDTH - 60, 1.15f, 4);
-        UiText.drawBlock(g, block, x, y + 68, TEXT, null);
-    }
 
     public static void drawAbandonPrompt(Graphics2D g) {
         Font font = UiFontManager.dorris(30, Font.BOLD);
@@ -65,9 +53,9 @@ public final class TemporaryUiRenderer {
         String word = "Abandon";
         String after = " this question?";
         float total = UiText.width(before, font) + UiText.width(word, font) + UiText.width(after, font);
-        float x = GameConstants.TEMPORARY_GAMEPLAY_CHOICES_PANEL_X
-            + (GameConstants.TEMPORARY_GAMEPLAY_CHOICES_PANEL_WIDTH - total) / 2f;
-        float baseline = GameConstants.TEMPORARY_GAMEPLAY_CHOICES_PANEL_Y + 75;
+        float x = UiLayout.PANEL_X
+            + (UiLayout.PANEL_WIDTH - total) / 2f;
+        float baseline = UiLayout.PANEL_Y + 75;
         UiText.draw(g, before, font, x, baseline, TEXT);
         x += UiText.width(before, font);
         UiText.draw(g, word, font, x, baseline, ABANDON_HIGHLIGHT,
@@ -75,8 +63,8 @@ public final class TemporaryUiRenderer {
         x += UiText.width(word, font);
         UiText.draw(g, after, font, x, baseline, TEXT);
         UiText.drawCentered(g, "Abandoning counts as a wrong answer.", UiFontManager.dorris(17, Font.BOLD),
-            GameConstants.TEMPORARY_GAMEPLAY_CHOICES_PANEL_X
-                + GameConstants.TEMPORARY_GAMEPLAY_CHOICES_PANEL_WIDTH / 2f,
+            UiLayout.PANEL_X
+                + UiLayout.PANEL_WIDTH / 2f,
             baseline + 36, new Color(190, 190, 190), null);
     }
 
@@ -84,9 +72,9 @@ public final class TemporaryUiRenderer {
                                   boolean hovered, boolean selected, boolean nullified,
                                   ChoiceButton.Result result) {
         boolean highlighted = selected || result == ChoiceButton.Result.CORRECT;
-        String borderKey = highlighted ? "UI_CHOICES_BORDER_SELECTED" : "UI_CHOICES_BORDER";
-        if (AssetCache.get(borderKey) != null) {
-            g.drawImage(AssetCache.get(borderKey), bounds.x, bounds.y, bounds.width, bounds.height, null);
+        BufferedImage border = AssetCache.get(highlighted ? Img.CHOICES_BORDER_SELECTED : Img.CHOICES_BORDER);
+        if (border != null) {
+            g.drawImage(border, bounds.x, bounds.y, bounds.width, bounds.height, null);
         }
 
         Color color = nullified ? DIM_TEXT
@@ -158,10 +146,10 @@ public final class TemporaryUiRenderer {
 
     // Full view of a long choice over the question area.
     public static void drawChoicePreview(Graphics2D g, String label, String text) {
-        int x = GameConstants.TEMPORARY_GAMEPLAY_QUESTION_TEXT_X - 15;
-        int y = GameConstants.TEMPORARY_GAMEPLAY_PANEL_Y;
-        int width = GameConstants.TEMPORARY_GAMEPLAY_QUESTION_TEXT_WIDTH + 30;
-        int height = GameConstants.STATUS_MESSAGE_Y - 24 - y;
+        int x = UiLayout.QUESTION_X - 15;
+        int y = UiLayout.QUESTION_AREA_Y;
+        int width = UiLayout.QUESTION_WIDTH + 30;
+        int height = UiLayout.STATUS_MESSAGE_Y - 24 - y;
         g.setColor(new Color(12, 12, 16, 250));
         g.fill(new java.awt.geom.RoundRectangle2D.Double(x, y, width, height, 16, 16));
         g.setColor(new Color(229, 190, 94, 200));
@@ -193,34 +181,4 @@ public final class TemporaryUiRenderer {
         UiText.drawBlock(g, rightBlock, x + 32 + columnWidth, y + 40, TEXT, null);
     }
 
-    public static void drawWrappedText(Graphics2D g, String text, int x, int y,
-                                       int maxWidth, int lineHeight, int maxLines) {
-        FontMetrics metrics = g.getFontMetrics();
-        int currentY = y;
-        int lineCount = 0;
-        for (String paragraph : text.replace("<br>", "\n").split("\\n")) {
-            StringBuilder line = new StringBuilder();
-            for (String word : paragraph.split("\\s+")) {
-                String candidate = line.length() == 0 ? word : line + " " + word;
-                if (metrics.stringWidth(candidate) > maxWidth && line.length() > 0) {
-                    g.drawString(line.toString(), x, currentY);
-                    currentY += lineHeight;
-                    lineCount++;
-                    line.setLength(0);
-                    if (lineCount >= maxLines) {
-                        return;
-                    }
-                }
-                line.append(line.length() == 0 ? word : " " + word);
-            }
-            if (line.length() > 0 && lineCount < maxLines) {
-                g.drawString(line.toString(), x, currentY);
-                currentY += lineHeight;
-                lineCount++;
-            }
-            if (lineCount >= maxLines) {
-                return;
-            }
-        }
-    }
 }

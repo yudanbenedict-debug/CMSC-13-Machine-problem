@@ -1,10 +1,12 @@
 package com.mygame.engine.hud;
 
 import com.mygame.engine.core.AssetCache;
+import com.mygame.engine.core.Img;
+import com.mygame.engine.core.Sfx;
 import com.mygame.engine.core.SoundManager;
 import com.mygame.engine.helpers.algorithms.EasingMethods;
 import com.mygame.engine.helpers.algorithms.TransformMethods;
-import com.mygame.engine.helpers.constants.GameConstants;
+import com.mygame.engine.helpers.constants.UiLayout;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -18,56 +20,48 @@ import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.util.function.Consumer;
 
-public class TemporaryRadialMenu {
+public class RadialMenu {
     public enum Option {
-        ANSWER(70, new Color(0x7FB05A), "FANCY_BORDER_ANSWER", "Answer"),
-        CONTACT_HELP(49, new Color(0xC8B560), "FANCY_BORDER_CONTACT_HELP", "Contact\nDeclarative Dynamo"),
-        ABANDON(28, new Color(0xD05A5A), "FANCY_BORDER_ABANDON_QUESTION", "Abandon Question"),
-        CONSUMABLE(7, new Color(0x6A8CC8), "FANCY_BORDER_CONSUMABLE", "Consumable");
+        ANSWER(70, new Color(0x7FB05A), Img.FANCY_BORDER_ANSWER, "Answer"),
+        CONTACT_HELP(49, new Color(0xC8B560), Img.FANCY_BORDER_CONTACT_HELP, "Contact\nDeclarative Dynamo"),
+        ABANDON(28, new Color(0xD05A5A), Img.FANCY_BORDER_ABANDON_QUESTION, "Abandon Question"),
+        CONSUMABLE(7, new Color(0x6A8CC8), Img.FANCY_BORDER_CONSUMABLE, "Consumable");
 
         private final double angle;
         private final Color color;
-        private final String assetKey;
+        private final Img border;
         private final String label;
 
-        Option(double angle, Color color, String assetName, String label) {
+        Option(double angle, Color color, Img border, String label) {
             this.angle = angle;
             this.color = color;
-            this.assetKey = "UI_RADIAL_" + assetName;
+            this.border = border;
             this.label = label;
         }
 
         public String label() {
             return label;
         }
-
-        public String description() {
-            return switch (this) {
-                case ANSWER -> "Choose an answer below.";
-                case CONTACT_HELP -> "Declarative Dynamo hint panel.";
-                case ABANDON -> "Do you really wish to Abandon this question?";
-                case CONSUMABLE -> "Choose a consumable for this turn.";
-            };
-        }
     }
 
     private static final double SECTOR = 21;
     private static final double IDLE_ANGLE = 0;
-    private final double centerX = GameConstants.TEMPORARY_RADIAL_CENTER_X;
-    private final double centerY = GameConstants.TEMPORARY_RADIAL_CENTER_Y;
-    private final double dialRadius = GameConstants.TEMPORARY_RADIAL_DIAL_RADIUS;
-    private final double itemRadius = GameConstants.TEMPORARY_RADIAL_ITEM_RADIUS;
+    private final double centerX = UiLayout.RADIAL_CENTER_X;
+    private final double centerY = UiLayout.RADIAL_CENTER_Y;
+    private final double dialRadius = UiLayout.RADIAL_DIAL_RADIUS;
+    private final double itemRadius = UiLayout.RADIAL_ITEM_RADIUS;
     private final Option[] options = Option.values();
     private final double[] scales = new double[options.length];
     private int hovered = -1;
     private int active = -1;
+    private boolean keyboardFocus;
     private double arrowAngle = IDLE_ANGLE;
     private double arrowTarget = IDLE_ANGLE;
     private double arrowDelayRemaining;
     private double wedge;
     private Consumer<Option> selectionListener;
 
-    public TemporaryRadialMenu() {
+    public RadialMenu() {
         for (int index = 0; index < options.length; index++) {
             scales[index] = 1.0;
         }
@@ -77,9 +71,6 @@ public class TemporaryRadialMenu {
         this.selectionListener = selectionListener;
     }
 
-    public Option getActiveOption() {
-        return active < 0 ? null : options[active];
-    }
 
     public void select(Option option) {
         for (int index = 0; index < options.length; index++) {
@@ -104,7 +95,7 @@ public class TemporaryRadialMenu {
         double targetArrow = focused >= 0 ? options[focused].angle : IDLE_ANGLE;
         if (Double.compare(targetArrow, arrowTarget) != 0) {
             arrowTarget = targetArrow;
-            arrowDelayRemaining = GameConstants.TEMPORARY_RADIAL_ARROW_DELAY;
+            arrowDelayRemaining = UiLayout.RADIAL_ARROW_DELAY;
         }
         if (arrowDelayRemaining > 0) {
             arrowDelayRemaining = Math.max(0, arrowDelayRemaining - Math.max(0, deltaTime));
@@ -138,9 +129,13 @@ public class TemporaryRadialMenu {
 
     public void mouseMoved(Point point) {
         int picked = pick(point.x, point.y);
+        if (keyboardFocus && picked < 0) {
+            return; // a stray mouse twitch shouldn't drop the arrow-key highlight
+        }
+        keyboardFocus = false;
         if (picked >= 0 && picked != hovered) {
             // pooled clip, so quick sweeps stack
-            SoundManager.playSFX("RADIAL_CHOICES_HOVER_01");
+            SoundManager.playSFX(Sfx.RADIAL_CHOICES_HOVER_01);
         }
         hovered = picked;
     }
@@ -155,8 +150,34 @@ public class TemporaryRadialMenu {
         }
     }
 
-    public void mouseExited() {
+
+    // true when the point is anywhere on the wheel (clicks there shouldn't skip to the next question)
+    public boolean contains(Point point) {
+        double distance = TransformMethods.distance(centerX, centerY, point.x, point.y);
+        return distance <= itemRadius + UiLayout.RADIAL_LABEL_WIDTH / 2.0 + 40;
+    }
+
+    // Up/Down arrows: moves the highlight between Answer, Contact, Abandon and Consumable (top to bottom)
+    public void moveFocus(int delta) {
+        int start = hovered >= 0 ? hovered : active >= 0 ? active : (delta > 0 ? -1 : options.length);
+        int next = Math.max(0, Math.min(options.length - 1, start + delta));
+        if (next != hovered) {
+            SoundManager.playSFX(Sfx.RADIAL_CHOICES_HOVER_01);
+        }
+        hovered = next;
+        keyboardFocus = true;
+    }
+
+    public boolean hasKeyboardFocus() {
+        return keyboardFocus && hovered >= 0;
+    }
+
+    public void confirmFocus() {
+        if (hovered >= 0) {
+            select(options[hovered]);
+        }
         hovered = -1;
+        keyboardFocus = false;
     }
 
     private int focusIndex() {
@@ -165,7 +186,7 @@ public class TemporaryRadialMenu {
 
     private int pick(double mouseX, double mouseY) {
         double distance = TransformMethods.distance(centerX, centerY, mouseX, mouseY);
-        if (distance < dialRadius || distance > itemRadius + GameConstants.TEMPORARY_RADIAL_LABEL_WIDTH / 2.0 + 40) {
+        if (distance < dialRadius || distance > itemRadius + UiLayout.RADIAL_LABEL_WIDTH / 2.0 + 40) {
             return -1;
         }
 
@@ -220,27 +241,27 @@ public class TemporaryRadialMenu {
         Option option = options[index];
         java.awt.geom.Point2D.Double position = TransformMethods.polarToScreen(centerX, centerY, itemRadius, option.angle);
         BufferedImage border = AssetCache.get(active == index
-            ? option.assetKey : "UI_RADIAL_FANCY_BORDER");
+            ? option.border : Img.FANCY_BORDER);
 
         AffineTransform oldTransform = graphics.getTransform();
         graphics.transform(TransformMethods.radialTransform(position.x, position.y, option.angle, scales[index]));
         if (border != null) {
             graphics.drawImage(border,
-                    -GameConstants.TEMPORARY_RADIAL_LABEL_WIDTH / 2,
-                    -GameConstants.TEMPORARY_RADIAL_LABEL_HEIGHT / 2,
-                    GameConstants.TEMPORARY_RADIAL_LABEL_WIDTH,
-                    GameConstants.TEMPORARY_RADIAL_LABEL_HEIGHT, null);
+                    -UiLayout.RADIAL_LABEL_WIDTH / 2,
+                    -UiLayout.RADIAL_LABEL_HEIGHT / 2,
+                    UiLayout.RADIAL_LABEL_WIDTH,
+                    UiLayout.RADIAL_LABEL_HEIGHT, null);
         } else {
             graphics.setColor(new Color(20, 20, 20));
-            graphics.fillRoundRect(-GameConstants.TEMPORARY_RADIAL_LABEL_WIDTH / 2,
-                    -GameConstants.TEMPORARY_RADIAL_LABEL_HEIGHT / 2,
-                    GameConstants.TEMPORARY_RADIAL_LABEL_WIDTH,
-                    GameConstants.TEMPORARY_RADIAL_LABEL_HEIGHT, 14, 14);
+            graphics.fillRoundRect(-UiLayout.RADIAL_LABEL_WIDTH / 2,
+                    -UiLayout.RADIAL_LABEL_HEIGHT / 2,
+                    UiLayout.RADIAL_LABEL_WIDTH,
+                    UiLayout.RADIAL_LABEL_HEIGHT, 14, 14);
             graphics.setColor(option.color);
-            graphics.drawRoundRect(-GameConstants.TEMPORARY_RADIAL_LABEL_WIDTH / 2,
-                    -GameConstants.TEMPORARY_RADIAL_LABEL_HEIGHT / 2,
-                    GameConstants.TEMPORARY_RADIAL_LABEL_WIDTH,
-                    GameConstants.TEMPORARY_RADIAL_LABEL_HEIGHT, 14, 14);
+            graphics.drawRoundRect(-UiLayout.RADIAL_LABEL_WIDTH / 2,
+                    -UiLayout.RADIAL_LABEL_HEIGHT / 2,
+                    UiLayout.RADIAL_LABEL_WIDTH,
+                    UiLayout.RADIAL_LABEL_HEIGHT, 14, 14);
         }
         Color glow = index == active ? UiText.DEFAULT_GLOW
             : index == hovered ? new Color(255, 236, 170, 140) : null;

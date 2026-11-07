@@ -1,6 +1,8 @@
 package com.mygame.ui;
 
 import com.mygame.engine.core.GameStateManager;
+import com.mygame.engine.core.Img;
+import com.mygame.engine.core.Sfx;
 import com.mygame.engine.helpers.constants.GameConstants;
 import java.util.List;
 
@@ -21,7 +23,9 @@ public class HowToPlayState extends InfoState {
         "Refresher resets Declarative Dynamo's function calls.",
         "Questions get harder the deeper you push: the Core asks programming questions.",
         "Right-click deselects a choice. Click a selected choice again (or press Enter) to confirm.",
-        "Press Esc or P anytime to pause."
+        "Press Esc or P anytime to pause.",
+        "Use the Up / Down arrow keys and Enter to pick Answer, Contact, Abandon or Consumable.",
+        "Press F3 to show the FPS counter."
     };
 
     public HowToPlayState(GameStateManager stateManager) {
@@ -46,16 +50,16 @@ public class HowToPlayState extends InfoState {
             InfoBlock.body("Use the option wheel at the bottom-left: Answer, Contact Declarative Dynamo "
                 + "(a hint, " + GameConstants.DYNAMO_HINT_USES + " function calls per game), Abandon Question "
                 + "(counts as a wrong answer), or use a Consumable."),
-            InfoBlock.image("UI_HINT_DECLARATIVE_DYNAMO", 150, "Declarative Dynamo - your mentor"),
+            InfoBlock.image(Img.HINT_DECLARATIVE_DYNAMO, 150, "Declarative Dynamo - your mentor"),
 
             InfoBlock.heading("Consumables"),
             InfoBlock.body("Consumables drop randomly after correct answers (always when you destroy a node). "
                 + "Rarer consumables are stronger. Click one to select it, click it again to use it."),
-            InfoBlock.image("CONSUMABLE_NULLSLINGER", 90, "NullSlinger (common): nullifies one wrong choice."),
-            InfoBlock.image("CONSUMABLE_SCRIPTERS_SACRIFICE", 90, "Scripter's Sacrifice (rare): your turn deals "
+            InfoBlock.image(Img.CONSUMABLE_NULLSLINGER, 90, "NullSlinger (common): nullifies one wrong choice."),
+            InfoBlock.image(Img.CONSUMABLE_SCRIPTERS_SACRIFICE, 90, "Scripter's Sacrifice (rare): your turn deals "
                 + "double damage. It has " + GameConstants.SCRIPTERS_SACRIFICE_SAFE_USES + " safe uses - overuse it "
                 + "and it hurts you every turn until you discard it."),
-            InfoBlock.image("CONSUMABLE_REFRESHER", 90, "Refresher (rarest): resets Declarative Dynamo's "
+            InfoBlock.image(Img.CONSUMABLE_REFRESHER, 90, "Refresher (rarest): resets Declarative Dynamo's "
                 + "function calls."),
 
             InfoBlock.heading("Score"),
@@ -71,9 +75,10 @@ public class HowToPlayState extends InfoState {
             InfoBlock.body("If the enemy destroys the Core of your allied faction, you lose."),
 
             InfoBlock.heading("Controls"),
-            InfoBlock.body("Mouse: pick options and answers. Enter / Space: confirm or continue. "
+            InfoBlock.body("Mouse: pick options and answers. Up / Down: move between the wheel options. "
+                + "Enter / Space: open the highlighted option, confirm or continue. F3: FPS counter. "
                 + "Esc / P / pause button: pause. F11: fullscreen. Mouse wheel or arrow keys: scroll."),
             InfoBlock.gap(10)
-        ), "HOW_TO_PLAY_MENU_ONSELECT");
+        ), Sfx.HOW_TO_PLAY_MENU_ONSELECT);
     }
 }

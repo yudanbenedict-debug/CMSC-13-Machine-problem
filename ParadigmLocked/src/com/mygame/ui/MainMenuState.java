@@ -3,12 +3,14 @@ package com.mygame.ui;
 import com.mygame.engine.core.AssetCache;
 import com.mygame.engine.core.GameState;
 import com.mygame.engine.core.GameStateManager;
+import com.mygame.engine.core.Img;
+import com.mygame.engine.core.Sfx;
 import com.mygame.engine.core.SoundManager;
 import com.mygame.engine.core.StateMethods;
 import com.mygame.engine.helpers.algorithms.EasingMethods;
-import com.mygame.engine.helpers.constants.GameConstants;
+import com.mygame.engine.helpers.constants.UiLayout;
 import com.mygame.engine.hud.Button;
-import com.mygame.engine.hud.TemporaryUiRenderer;
+import com.mygame.engine.hud.CircuitBackground;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
@@ -25,15 +27,15 @@ public class MainMenuState implements StateMethods {
 
     public MainMenuState(GameStateManager stateManager) {
         this.stateManager = stateManager;
-        int x = GameConstants.TEMPORARY_MENU_BUTTON_X;
-        int width = GameConstants.TEMPORARY_MENU_BUTTON_WIDTH;
-        int height = GameConstants.TEMPORARY_MENU_BUTTON_HEIGHT;
-        int startY = GameConstants.TEMPORARY_MENU_BUTTON_START_Y;
-        int spacing = GameConstants.TEMPORARY_MENU_BUTTON_SPACING;
-        startButton = new Button(x, startY, width, height, "START GAME", "UI_MENU_FANCY_BORDER", () -> stateManager.setState(GameState.PLAYING));
-        howToPlayButton = new Button(x, startY + spacing, width, height, "HOW TO PLAY", "UI_MENU_FANCY_BORDER", () -> stateManager.setState(GameState.HOWTOPLAY));
-        creditsButton = new Button(x, startY + spacing * 2, width, height, "CREDITS", "UI_MENU_FANCY_BORDER", () -> stateManager.setState(GameState.CREDITS));
-        quitButton = new Button(x, startY + spacing * 3, width, height, "QUIT", "UI_MENU_FANCY_BORDER", () -> System.exit(0));
+        int x = UiLayout.MENU_BUTTON_X;
+        int width = UiLayout.MENU_BUTTON_WIDTH;
+        int height = UiLayout.MENU_BUTTON_HEIGHT;
+        int startY = UiLayout.MENU_BUTTON_START_Y;
+        int spacing = UiLayout.MENU_BUTTON_SPACING;
+        startButton = new Button(x, startY, width, height, "START GAME", Img.FANCY_BORDER, () -> stateManager.setState(GameState.SIDE_SELECT));
+        howToPlayButton = new Button(x, startY + spacing, width, height, "HOW TO PLAY", Img.FANCY_BORDER, () -> stateManager.setState(GameState.HOWTOPLAY));
+        creditsButton = new Button(x, startY + spacing * 2, width, height, "CREDITS", Img.FANCY_BORDER, () -> stateManager.setState(GameState.CREDITS));
+        quitButton = new Button(x, startY + spacing * 3, width, height, "QUIT", Img.FANCY_BORDER, () -> System.exit(0));
     }
 
     @Override
@@ -52,27 +54,23 @@ public class MainMenuState implements StateMethods {
 
     // Menu background without the logo (behind How to Play / Credits).
     public void drawBackdrop(Graphics2D g) {
-        BufferedImage background = AssetCache.get("UI_MAIN_MENU_BACKGROUND");
-        if (background != null) {
-            g.drawImage(background, 0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT, null);
-        } else {
-            TemporaryUiRenderer.drawScreenBackground(g);
-        }
+        drawCircuit(g);
+    }
+
+    // shared menu background + circuit cycling green -> blue -> red
+    public static void drawCircuit(Graphics2D g) {
+        CircuitBackground.menu().setMenuCycle();
+        CircuitBackground.menu().draw(g, AssetCache.get(Img.MAIN_MENU_BACKGROUND));
     }
 
     public void drawBackground(Graphics2D g) {
-        BufferedImage background = AssetCache.get("UI_MAIN_MENU_BACKGROUND");
-        if (background != null) {
-            g.drawImage(background, 0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT, null);
-        } else {
-            TemporaryUiRenderer.drawScreenBackground(g);
-        }
-        BufferedImage logo = AssetCache.get("UI_MAIN_MENU_LOGO");
+        drawBackdrop(g);
+        BufferedImage logo = AssetCache.get(Img.MAIN_MENU_LOGO);
         if (logo != null) {
-            g.drawImage(logo, GameConstants.TEMPORARY_MENU_LOGO_X,
-                    GameConstants.TEMPORARY_MENU_LOGO_Y,
-                    GameConstants.TEMPORARY_MENU_LOGO_WIDTH,
-                    GameConstants.TEMPORARY_MENU_LOGO_HEIGHT, null);
+            g.drawImage(logo, UiLayout.MENU_LOGO_X,
+                    UiLayout.MENU_LOGO_Y,
+                    UiLayout.MENU_LOGO_WIDTH,
+                    UiLayout.MENU_LOGO_HEIGHT, null);
         }
         // if (logo == null) {
         //     g.setColor(new Color(228, 241, 235));
@@ -88,7 +86,7 @@ public class MainMenuState implements StateMethods {
 
     @Override
     public void onEnter() {
-        SoundManager.playMusic("THEME_MAIN_MENU");
+        SoundManager.playMusic(Sfx.THEME_MAIN_MENU);
         buttonsFade = stateManager.getPreviousState() == GameState.TITLE ? 0 : 1;
     }
     @Override public void onExit() { }

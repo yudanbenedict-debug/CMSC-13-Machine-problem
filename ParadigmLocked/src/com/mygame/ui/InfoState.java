@@ -2,9 +2,11 @@ package com.mygame.ui;
 
 import com.mygame.engine.core.GameState;
 import com.mygame.engine.core.GameStateManager;
+import com.mygame.engine.core.Sfx;
 import com.mygame.engine.core.SoundManager;
 import com.mygame.engine.core.StateMethods;
 import com.mygame.engine.helpers.constants.GameConstants;
+import com.mygame.engine.hud.Hover;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
@@ -18,14 +20,14 @@ public abstract class InfoState implements StateMethods {
     private final GameStateManager stateManager;
     private final String title;
     private final List<InfoBlock> blocks;
-    private final String openSound;
+    private final Sfx openSound;
     private Consumer<Graphics2D> menuBackdrop;
     private Consumer<Graphics2D> gameBackdrop;
     private GameState returnState = GameState.MENU;
     private double scroll;
-    private boolean backHovered;
+    private final Hover backHover = new Hover();
 
-    protected InfoState(GameStateManager stateManager, String title, List<InfoBlock> blocks, String openSound) {
+    protected InfoState(GameStateManager stateManager, String title, List<InfoBlock> blocks, Sfx openSound) {
         this.stateManager = stateManager;
         this.title = title;
         this.blocks = blocks;
@@ -45,7 +47,7 @@ public abstract class InfoState implements StateMethods {
             g.setColor(new Color(0, 0, 0, 175));
             g.fillRect(0, 0, GameConstants.LOGICAL_WIDTH, GameConstants.LOGICAL_HEIGHT);
         }
-        OverlayMenuRenderer.drawInfoOverlay(g, title, blocks, scroll, backHovered);
+        OverlayMenuRenderer.drawInfoOverlay(g, title, blocks, scroll, backHover.isHovered());
     }
 
     @Override public void update(double dt) { }
@@ -55,7 +57,7 @@ public abstract class InfoState implements StateMethods {
         GameState previous = stateManager.getPreviousState();
         returnState = previous == GameState.PAUSED ? GameState.PAUSED : GameState.MENU;
         scroll = 0;
-        backHovered = false;
+        backHover.clear();
         if (openSound != null) {
             SoundManager.playSFX(openSound);
         }
@@ -74,11 +76,7 @@ public abstract class InfoState implements StateMethods {
 
     @Override
     public void mouseMoved(MouseEvent event) {
-        boolean now = OverlayMenuRenderer.getBackBounds().contains(event.getPoint());
-        if (now && !backHovered) {
-            SoundManager.playMenuHover();
-        }
-        backHovered = now;
+        backHover.update(OverlayMenuRenderer.getBackBounds().contains(event.getPoint()));
     }
 
     @Override

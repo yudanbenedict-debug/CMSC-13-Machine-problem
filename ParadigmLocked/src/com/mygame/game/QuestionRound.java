@@ -1,61 +1,48 @@
 package com.mygame.game;
 
+import com.mygame.engine.helpers.gamequestions.Question;
 import java.util.Random;
 
-import com.mygame.engine.helpers.gamequestions.Question;
-
+// One asked question with its four answers shuffled.
 public class QuestionRound {
-    private Question currQuestion;
-    private String correctText;
-    private String[] answers = new String[4];
-    public QuestionRound(Question currQuestion){
-        this.currQuestion = currQuestion;
-        resolveCorrectAnswer();
-        shuffleQuestions();
-        getQuestionsMaterials();
-    }
-    private void resolveCorrectAnswer(){
-        if(currQuestion.correctAnswer.equals("A")){
-            correctText = currQuestion.optionA;
-        }else if(currQuestion.correctAnswer.equals("B")){
-            correctText = currQuestion.optionB;
-        }
-        else if(currQuestion.correctAnswer.equals("C")){
-            correctText = currQuestion.optionC;
-        }
-        else if(currQuestion.correctAnswer.equals("D")){
-            correctText = currQuestion.optionD;
-        }
-    }
-    private void shuffleQuestions(){
-        Random rand = new Random();
-        answers[0] = currQuestion.optionA;
-        answers[1] = currQuestion.optionB;
-        answers[2] = currQuestion.optionC;
-        answers[3] = currQuestion.optionD;
+    private static final Random RANDOM = new Random();
+    private final Question question;
+    private final String[] answers;
+    private final int correctIndex;
 
-        for(int i = 3; i > 0; i--){
-            int randomIndex = rand.nextInt(i + 1);
+    public QuestionRound(Question question) {
+        this.question = question;
+        answers = new String[] {question.optionA, question.optionB, question.optionC, question.optionD};
+        String correctText = answers["ABCD".indexOf(question.correctAnswer.trim().toUpperCase())];
+        // Fisher-Yates shuffle
+        for (int i = answers.length - 1; i > 0; i--) {
+            int j = RANDOM.nextInt(i + 1);
             String temp = answers[i];
-            answers[i] = answers[randomIndex];
-            answers[randomIndex] = temp;
+            answers[i] = answers[j];
+            answers[j] = temp;
         }
+        int found = 0;
+        for (int index = 0; index < answers.length; index++) {
+            if (answers[index].equals(correctText)) {
+                found = index;
+            }
+        }
+        correctIndex = found;
     }
-    public boolean isCorrect(String ans){
-        return correctText.equals(ans);
+
+    public Question question() {
+        return question;
     }
-    public String[] getShuffledQuestions(){
+
+    public String[] answers() {
         return answers;
     }
-    //debugger
-    private void getQuestionsMaterials(){
-        if (!Boolean.getBoolean("paradigm.debug")) {
-            return;  // enable with -Dparadigm.debug=true
-        }
-        System.err.println(currQuestion.id);
-        System.err.println(currQuestion.question);
-        for(int i = 0; i < 4; i++){
-            System.err.println(answers[i]);
-        }
+
+    public int correctIndex() {
+        return correctIndex;
+    }
+
+    public boolean isCorrect(int index) {
+        return index == correctIndex;
     }
 }

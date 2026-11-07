@@ -1,9 +1,5 @@
 package com.mygame.engine.helpers.gamequestions;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,12 +11,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
 public class FileLoader {
         //TODO: AFTER COMPILING EVERYTHING, REMNOVE SETTINGS.JSON AND TRANSFER THE JAR DEPENDECY TO ITS PROPER PLACE.
         //assume we create a csv/txt file for each questions.
         private static final List<Question> LOADED_QUESTIONS = new ArrayList<>();
-        public final List<Question> questions = LOADED_QUESTIONS;
+        private final List<Question> questions = LOADED_QUESTIONS;
         private static final String[] SEARCH_DIRECTORIES = {
             ".",
             "CMSC-13-Machine-problem",
@@ -38,7 +37,7 @@ public class FileLoader {
         }
     }
 
-    public final void initializeQuestions(String filePath){
+    private void initializeQuestions(String filePath){
         
         //gets the entire String, top to bottom, skipping the header of a CSV
         CSVFormat format = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).get();
@@ -58,7 +57,7 @@ public class FileLoader {
         
     
     private Reader openReader(String path) throws IOException{
-        InputStream inputStream = FileLoader.class.getResourceAsStream("/" + path);
+        InputStream inputStream = com.mygame.engine.core.Resources.open(path);
         if (inputStream != null) {
             return new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
         }

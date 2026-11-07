@@ -1,7 +1,7 @@
 package com.mygame.engine.hud;
 
 import com.mygame.engine.core.AssetCache;
-import com.mygame.engine.core.SoundManager;
+import com.mygame.engine.core.Img;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
@@ -12,46 +12,42 @@ import java.awt.image.BufferedImage;
 public class Button {
     private final Rectangle bounds;
     private final String label;
-    private final String assetKey;
+    private final Img image;
     private final Runnable action;
     private final boolean backgroundVisible;
-    private boolean hovered;
+    private final Hover hover = new Hover();
     private boolean pressed;
     private boolean enabled = true;
 
-    public Button(int x, int y, int width, int height, String label, String assetKey, Runnable action) {
-        this(x, y, width, height, label, assetKey, action, true);
+    public Button(int x, int y, int width, int height, String label, Img image, Runnable action) {
+        this(x, y, width, height, label, image, action, true);
     }
 
-    public Button(int x, int y, int width, int height, String label, String assetKey,
+    public Button(int x, int y, int width, int height, String label, Img image,
                   Runnable action, boolean backgroundVisible) {
         this.bounds = new Rectangle(x, y, width, height);
         this.label = label;
-        this.assetKey = assetKey;
+        this.image = image;
         this.action = action;
         this.backgroundVisible = backgroundVisible;
     }
 
     public void draw(Graphics2D g) {
-        BufferedImage image = assetKey == null ? null : AssetCache.get(assetKey);
-        if (image != null) {
-            g.drawImage(image, bounds.x, bounds.y, bounds.width, bounds.height, null);
+        BufferedImage art = image == null ? null : AssetCache.get(image);
+        if (art != null) {
+            g.drawImage(art, bounds.x, bounds.y, bounds.width, bounds.height, null);
         } else if (backgroundVisible && label != null) {
-            TemporaryUiRenderer.drawButton(g, bounds, "", hovered, pressed, enabled);
+            UiRenderer.drawButton(g, bounds, "", hover.isHovered(), pressed, enabled);
         }
         if (label != null && !label.isEmpty()) {
             Color color = enabled ? Color.WHITE : new Color(160, 160, 160);
             UiText.drawInBox(g, label, UiFontManager.dorris(22, Font.BOLD), bounds, color,
-                hovered ? UiText.DEFAULT_GLOW : null);
+                hover.isHovered() ? UiText.DEFAULT_GLOW : null);
         }
     }
 
     public void updateHover(Point logicalPoint) {
-        boolean nowHovered = enabled && bounds.contains(logicalPoint);
-        if (nowHovered && !hovered) {
-            SoundManager.playMenuHover();
-        }
-        hovered = nowHovered;
+        hover.update(enabled && bounds.contains(logicalPoint));
     }
 
     public void press(Point logicalPoint) {
@@ -71,17 +67,14 @@ public class Button {
     }
 
     public boolean isHovered() {
-        return hovered;
+        return hover.isHovered();
     }
 
-    public boolean isPressed() {
-        return pressed;
-    }
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
         if (!enabled) {
-            hovered = false;
+            hover.clear();
             pressed = false;
         }
     }

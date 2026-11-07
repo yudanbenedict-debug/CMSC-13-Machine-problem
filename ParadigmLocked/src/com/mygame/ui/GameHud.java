@@ -1,7 +1,8 @@
 package com.mygame.ui;
 
 import com.mygame.engine.core.AssetCache;
-import com.mygame.engine.helpers.constants.GameConstants;
+import com.mygame.engine.core.Img;
+import com.mygame.engine.helpers.constants.UiLayout;
 import com.mygame.engine.hud.UiFontManager;
 import com.mygame.engine.hud.UiText;
 import com.mygame.game.Faction;
@@ -28,13 +29,13 @@ public final class GameHud {
     }
 
     public static Rectangle pauseBounds() {
-        return new Rectangle(GameConstants.PAUSE_BUTTON_X, GameConstants.PAUSE_BUTTON_Y,
-            GameConstants.PAUSE_BUTTON_SIZE, GameConstants.PAUSE_BUTTON_SIZE);
+        return new Rectangle(UiLayout.PAUSE_BUTTON_X, UiLayout.PAUSE_BUTTON_Y,
+            UiLayout.PAUSE_BUTTON_SIZE, UiLayout.PAUSE_BUTTON_SIZE);
     }
 
     public static void drawPauseButton(Graphics2D g, boolean hovered) {
         Rectangle bounds = pauseBounds();
-        BufferedImage image = AssetCache.get("UI_PAUSE_BUTTON");
+        BufferedImage image = AssetCache.get(Img.PAUSE_BUTTON);
         if (hovered) {
             g.setColor(new Color(255, 236, 170, 60));
             g.fill(new Ellipse2D.Double(bounds.x - 4, bounds.y - 4, bounds.width + 8, bounds.height + 8));
@@ -49,8 +50,8 @@ public final class GameHud {
     }
 
     public static void drawNodeStatus(Graphics2D g, ParadigmSpace space, double time) {
-        int x = GameConstants.HUD_NODE_STATUS_X;
-        int y = GameConstants.HUD_NODE_STATUS_Y;
+        int x = UiLayout.HUD_NODE_STATUS_X;
+        int y = UiLayout.HUD_NODE_STATUS_Y;
         boolean lowHp = space.ally().totalHp() == 1;
         drawSideRow(g, x, y, "YOU", space.ally(), Faction.player().color, true, lowHp, time);
         drawSideRow(g, x, y + 44, "ENEMY", space.enemy(), Faction.enemy().color, false, false, time);
@@ -85,7 +86,7 @@ public final class GameHud {
     }
 
     public static void drawTimerAndScore(Graphics2D g, double timeLeft, int score, boolean running) {
-        int centerX = GameConstants.HUD_TIMER_CENTER_X;
+        int centerX = UiLayout.HUD_TIMER_CENTER_X;
         int seconds = (int) Math.ceil(Math.max(0, timeLeft));
         boolean urgent = running && seconds <= 10;
         UiText.drawCentered(g, "TIME LEFT: " + seconds, UiFontManager.luckiestGuy(28, Font.PLAIN),
@@ -96,15 +97,15 @@ public final class GameHud {
 
     public static void drawQuestionsLeft(Graphics2D g, int left, int total) {
         UiText.drawCentered(g, "QUESTIONS LEFT: " + left + "/" + total, UiFontManager.dorris(13, Font.BOLD),
-            GameConstants.MINIMAP_X + GameConstants.MINIMAP_WIDTH / 2f,
-            GameConstants.MINIMAP_Y + GameConstants.MINIMAP_HEIGHT + 16, TEXT, null);
+            UiLayout.MINIMAP_X + UiLayout.MINIMAP_WIDTH / 2f,
+            UiLayout.MINIMAP_Y + UiLayout.MINIMAP_HEIGHT + 16, TEXT, null);
     }
 
     public static void drawMinimap(Graphics2D g, ParadigmSpace space, double time) {
-        int x = GameConstants.MINIMAP_X;
-        int y = GameConstants.MINIMAP_Y;
-        int width = GameConstants.MINIMAP_WIDTH;
-        int height = GameConstants.MINIMAP_HEIGHT;
+        int x = UiLayout.MINIMAP_X;
+        int y = UiLayout.MINIMAP_Y;
+        int width = UiLayout.MINIMAP_WIDTH;
+        int height = UiLayout.MINIMAP_HEIGHT;
         g.setColor(new Color(10, 10, 14, 170));
         g.fill(new RoundRectangle2D.Double(x, y, width, height, 14, 14));
         g.setColor(new Color(229, 190, 94, 180));

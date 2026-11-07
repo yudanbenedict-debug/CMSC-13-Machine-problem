@@ -1,18 +1,19 @@
 package com.mygame.ui;
 
+import com.mygame.engine.core.Img;
 // One content block (heading, text, image or gap) in How to Play / Credits.
 public final class InfoBlock {
     public enum Kind { HEADING, SUBHEADING, BODY, IMAGE, GAP }
 
     public final Kind kind;
     public final String text;
-    public final String imageKey;
+    public final Img image;
     public final int height;
 
-    private InfoBlock(Kind kind, String text, String imageKey, int height) {
+    private InfoBlock(Kind kind, String text, Img image, int height) {
         this.kind = kind;
         this.text = text;
-        this.imageKey = imageKey;
+        this.image = image;
         this.height = height;
     }
 
@@ -28,8 +29,8 @@ public final class InfoBlock {
         return new InfoBlock(Kind.BODY, text, null, 0);
     }
 
-    public static InfoBlock image(String imageKey, int height, String caption) {
-        return new InfoBlock(Kind.IMAGE, caption, imageKey, height);
+    public static InfoBlock image(Img image, int height, String caption) {
+        return new InfoBlock(Kind.IMAGE, caption, image, height);
     }
 
     public static InfoBlock gap(int height) {

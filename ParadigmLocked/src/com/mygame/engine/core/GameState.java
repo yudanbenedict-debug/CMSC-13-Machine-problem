@@ -8,6 +8,7 @@ public enum GameState {
   LOADING,
     TITLE, // "press any key" title intro between loading and the main menu
     MENU,
+    SIDE_SELECT, // choose Dark Web King or Immutable Mother before a match
     CREDITS,
     HOWTOPLAY, 
     PLAYING, //continue game will use playing gamestate but will import a savestate (make 3 save slots ig idk)

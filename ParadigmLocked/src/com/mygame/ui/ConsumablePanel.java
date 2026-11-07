@@ -1,8 +1,9 @@
 package com.mygame.ui;
 
 import com.mygame.engine.core.AssetCache;
-import com.mygame.engine.core.SoundManager;
-import com.mygame.engine.helpers.constants.GameConstants;
+import com.mygame.engine.core.Img;
+import com.mygame.engine.helpers.constants.UiLayout;
+import com.mygame.engine.hud.Hover;
 import com.mygame.engine.hud.UiFontManager;
 import com.mygame.engine.hud.UiText;
 import com.mygame.game.Consumable;
@@ -27,7 +28,7 @@ public final class ConsumablePanel {
     private final Predicate<Consumable> useAction;
     private final Runnable discardAction;
     private Consumable selected;
-    private int hoveredRow = -1;
+    private final Hover hover = new Hover();
     private boolean discardHovered;
 
     public ConsumablePanel(ConsumableInventory inventory, Predicate<Consumable> useAction,
@@ -46,14 +47,14 @@ public final class ConsumablePanel {
     }
 
     private static Rectangle panelBounds() {
-        return new Rectangle(GameConstants.CONSUMABLE_PANEL_X, GameConstants.CONSUMABLE_PANEL_Y,
-            GameConstants.CONSUMABLE_PANEL_WIDTH, GameConstants.CONSUMABLE_PANEL_HEIGHT);
+        return new Rectangle(UiLayout.CONSUMABLE_PANEL_X, UiLayout.CONSUMABLE_PANEL_Y,
+            UiLayout.CONSUMABLE_PANEL_WIDTH, UiLayout.CONSUMABLE_PANEL_HEIGHT);
     }
 
     private static Rectangle rowBounds(int row) {
         Rectangle panel = panelBounds();
-        return new Rectangle(panel.x + 42, panel.y + 22 + row * GameConstants.CONSUMABLE_ROW_HEIGHT,
-            panel.width - 84, GameConstants.CONSUMABLE_ROW_HEIGHT);
+        return new Rectangle(panel.x + 42, panel.y + 22 + row * UiLayout.CONSUMABLE_ROW_HEIGHT,
+            panel.width - 84, UiLayout.CONSUMABLE_ROW_HEIGHT);
     }
 
     private Rectangle discardBounds() {
@@ -82,7 +83,7 @@ public final class ConsumablePanel {
 
     // Draws each half of the square border at a uniform scale so it stays sharp.
     private static void drawFrame(Graphics2D g, Rectangle panel) {
-        BufferedImage frame = AssetCache.get("CONSUMABLE_BORDER");
+        BufferedImage frame = AssetCache.get(Img.CONSUMABLE_BORDER);
         if (frame == null) {
             return;
         }
@@ -100,14 +101,14 @@ public final class ConsumablePanel {
         boolean isSelected = consumable == selected;
         boolean available = inventory.canUse(consumable);
         BufferedImage border = AssetCache.get(isSelected
-            ? "CONSUMABLE_CHOICES_BORDER_SELECTED" : "CONSUMABLE_CHOICES_BORDER");
+            ? Img.CONSUMABLE_CHOICES_BORDER_SELECTED : Img.CONSUMABLE_CHOICES_BORDER);
         if (border != null) {
             g.drawImage(border, bounds.x, bounds.y, bounds.width, bounds.height, null);
         }
 
         int iconSize = 40;
         int iconY = bounds.y + 6;
-        BufferedImage icon = AssetCache.get(consumable.imageKey);
+        BufferedImage icon = AssetCache.get(consumable.image);
         if (icon != null) {
             java.awt.Composite old = g.getComposite();
             if (!available) {
@@ -119,7 +120,7 @@ public final class ConsumablePanel {
 
         Color color = available ? TEXT : DIM;
         Color glow = isSelected ? UiText.DEFAULT_GLOW
-            : row == hoveredRow && available ? new Color(255, 236, 170, 140) : null;
+            : hover.is(row) && available ? new Color(255, 236, 170, 140) : null;
         float baseline = iconY + iconSize / 2f + 7;
         UiText.draw(g, consumable.displayName, UiFontManager.dorris(21, Font.BOLD),
             bounds.x + iconSize + 18, baseline, color, glow);
@@ -155,10 +156,7 @@ public final class ConsumablePanel {
                 now = row;
             }
         }
-        if (now >= 0 && now != hoveredRow && inventory.canUse(ROWS[now])) {
-            SoundManager.playMenuHover();
-        }
-        hoveredRow = now;
+        hover.update(now >= 0 && inventory.canUse(ROWS[now]) ? now : -1);
         discardHovered = discardVisible() && discardBounds().contains(point);
     }
 
