@@ -127,7 +127,8 @@ public final class GameplayState implements StateMethods {
         GameHud.drawQuestionsLeft(g, match.questionsLeft() + (questionActive() ? 1 : 0), match.totalQuestions());
         if (!briefing.isActive()) {
             QuestionRound round = match.round();
-            UiRenderer.drawGameplayQuestion(g, round == null ? "No questions available." : round.question().question);
+            UiRenderer.drawGameplayQuestion(g, round == null ? "No questions available." : round.question().question,
+                codeQuestion());
             drawStatusMessage(g);
             drawOpenPanel(g);
         }
@@ -164,7 +165,7 @@ public final class GameplayState implements StateMethods {
             shown = choiceButtons[selectedChoice];
         }
         if (shown != null && shown.needsPreview()) {
-            UiRenderer.drawChoicePreview(g, shown.getLabel(), shown.getText());
+            UiRenderer.drawChoicePreview(g, shown.getLabel(), shown.getText(), shown.isCode());
         }
     }
 
@@ -221,6 +222,11 @@ public final class GameplayState implements StateMethods {
         }
         return prefix + (selectedChoice >= 0
             ? "Click it again or press Enter to confirm. Right-click to deselect." : "Select a choice.");
+    }
+
+    private boolean codeQuestion() {
+        QuestionRound round = match.round();
+        return round != null && "Programming".equalsIgnoreCase(round.question().category);
     }
 
     private boolean questionActive() {
@@ -369,6 +375,7 @@ public final class GameplayState implements StateMethods {
         String[] answers = match.round().answers();
         for (int index = 0; index < choiceButtons.length; index++) {
             choiceButtons[index].reset(answers[index]);
+            choiceButtons[index].setCode(codeQuestion());
         }
         // stay in the answer view if the last question was answered from it, otherwise back to "Select a choice"
         if (optionBeforeLock == Option.ANSWER) {

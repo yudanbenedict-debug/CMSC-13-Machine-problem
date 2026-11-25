@@ -16,12 +16,30 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 // Text helper: measure, wrap, auto-fit, glow; digits/symbols fall back to sans for the Kobani fonts.
 public final class UiText {
     public static final Color DEFAULT_GLOW = new Color(255, 236, 170);
     private static final FontRenderContext FRC = new FontRenderContext(null, true, true);
     private static final String FALLBACK_CHARS = "0123456789,;%*\"";
+    private static final Color CODE_KEYWORD = new Color(0x569CD6);
+    private static final Color CODE_CONTROL = new Color(0xC586C0);
+    private static final Color CODE_TYPE = new Color(0x4EC9B0);
+    private static final Color CODE_FUNCTION = new Color(0xDCDCAA);
+    private static final Color CODE_STRING = new Color(0xCE9178);
+    private static final Color CODE_NUMBER = new Color(0xB5CEA8);
+    private static final Color CODE_COMMENT = new Color(0x6A9955);
+    private static final Color CODE_BLANK = new Color(0xE5BE5E);
+    private static final Set<String> KEYWORDS = Set.of("int", "void", "char", "double", "float", "long",
+        "short", "bool", "boolean", "byte", "string", "object", "var", "class", "struct", "interface", "enum",
+        "abstract", "public", "private", "protected", "internal", "static", "final", "const", "readonly",
+        "new", "this", "super", "base", "extends", "implements", "import", "using", "namespace", "package",
+        "override", "virtual", "sealed", "true", "false", "null", "out", "ref", "in", "get", "set", "event",
+        "let", "where", "data", "instance", "module", "deriving", "unsigned");
+    private static final Set<String> CONTROL = Set.of("return", "if", "else", "for", "foreach", "while", "do",
+        "switch", "case", "break", "continue", "try", "catch", "finally", "throw", "throws", "default",
+        "yield", "of", "then");
     private static final Map<String, Object> CACHE = Collections.synchronizedMap(
         new LinkedHashMap<>(256, 0.75f, true) {
             @Override
@@ -60,15 +78,24 @@ public final class UiText {
     }
 
     public static TextLayout layout(String text, Font font) {
+        return layout(text, font, false);
+    }
+
+    public static TextLayout layout(String text, Font font, boolean code) {
         if (text == null || text.isEmpty()) {
             text = " ";
         }
-        String key = "L|" + font.getFontName() + '|' + font.getStyle() + '|' + font.getSize2D() + '|' + text;
+        String key = (code ? "C|" : "L|") + font.getFontName() + '|' + font.getStyle() + '|' + font.getSize2D()
+            + '|' + text;
         Object cached = CACHE.get(key);
         if (cached instanceof TextLayout) {
             return (TextLayout) cached;
         }
-        TextLayout layout = new TextLayout(attributed(text, font).getIterator(), FRC);
+        AttributedString attributed = attributed(text, font);
+        if (code) {
+            highlight(attributed, text);
+        }
+        TextLayout layout = new TextLayout(attributed.getIterator(), FRC);
         CACHE.put(key, layout);
         return layout;
     }
@@ -147,20 +174,26 @@ public final class UiText {
 
     public static Block wrap(String text, Font font, int maxWidth, float lineSpacing, int maxLines) {
         return fitInternal(text, font.getFamily(), font, font.getSize2D(), font.getSize2D(),
-            maxWidth, Integer.MAX_VALUE, lineSpacing, maxLines);
+            maxWidth, Integer.MAX_VALUE, lineSpacing, maxLines, false, false);
     }
 
     // Largest font size that fits the box; truncates with "..." if even minSize overflows.
     public static Block fit(String text, Font baseFont, float maxSize, float minSize,
                             int width, int height, float lineSpacing) {
+        return fit(text, baseFont, maxSize, minSize, width, height, lineSpacing, false, false);
+    }
+
+    public static Block fit(String text, Font baseFont, float maxSize, float minSize,
+                            int width, int height, float lineSpacing, boolean code, boolean skipFirstLine) {
         String key = "F|" + baseFont.getFontName() + '|' + baseFont.getStyle() + '|' + maxSize + '|'
-            + minSize + '|' + width + '|' + height + '|' + lineSpacing + '|' + text;
+            + minSize + '|' + width + '|' + height + '|' + lineSpacing + '|' + code + '|' + skipFirstLine
+            + '|' + text;
         Object cached = CACHE.get(key);
         if (cached instanceof Block) {
             return (Block) cached;
         }
         Block block = fitInternal(text, baseFont.getFamily(), baseFont, maxSize, minSize,
-            width, height, lineSpacing, Integer.MAX_VALUE);
+            width, height, lineSpacing, Integer.MAX_VALUE, code, skipFirstLine);
         CACHE.put(key, block);
         return block;
     }
@@ -175,11 +208,24 @@ public final class UiText {
 
     private static Block fitInternal(String text, String family, Font baseFont, float maxSize,
                                      float minSize, int width, int height, float lineSpacing,
-                                     int maxLines) {
+                                     int maxLines, boolean code, boolean skipFirstLine) {
         String clean = text == null ? "" : text.replace("\r", "").replace("<br>", "\n").replace("\t", "    ");
         for (float size = maxSize; size >= minSize; size -= 1f) {
             Font font = baseFont.deriveFont(size);
-            List<String> lines = wrapLines(clean, font, width);
+            List<String> lines = new ArrayList<>();
+            List<Boolean> colored = new ArrayList<>();
+            boolean highlighting = code;
+            String[] paragraphs = clean.split("\n", -1);
+            for (int index = 0; index < paragraphs.length; index++) {
+                if (paragraphs[index].trim().equalsIgnoreCase("Expected output:")) {
+                    highlighting = false;
+                }
+                boolean colorLine = highlighting && !(skipFirstLine && index == 0);
+                for (String line : wrapLines(paragraphs[index], font, width)) {
+                    lines.add(line);
+                    colored.add(colorLine);
+                }
+            }
             float lineHeight = lineHeight(font, lineSpacing);
             float ascent = layout("Ag", font).getAscent();
             float needed = lineHeight * (lines.size() - 1) + ascent + 4;
@@ -193,8 +239,9 @@ public final class UiText {
                     truncated = true;
                 }
                 List<TextLayout> layouts = new ArrayList<>();
-                for (String line : lines) {
-                    layouts.add(layout(line.isEmpty() ? " " : line, font));
+                for (int index = 0; index < lines.size(); index++) {
+                    String line = lines.get(index);
+                    layouts.add(layout(line.isEmpty() ? " " : line, font, colored.get(index)));
                 }
                 return new Block(layouts, lineHeight, ascent, size, truncated);
             }
@@ -222,7 +269,7 @@ public final class UiText {
             while (indentCount < paragraph.length() && paragraph.charAt(indentCount) == ' ') {
                 indentCount++;
             }
-            String indent = " ".repeat(Math.min(indentCount, 8));
+            String indent = " ".repeat(Math.min(indentCount, 32));
             String body = paragraph.trim();
             if (body.isEmpty()) {
                 wrapped.add("");
@@ -275,6 +322,75 @@ public final class UiText {
             }
         }
         return attributed;
+    }
+
+    private static void highlight(AttributedString attributed, String text) {
+        int length = text.length();
+        int index = 0;
+        while (index < length && text.charAt(index) == ' ') {
+            index++;
+        }
+        if (index < length && text.charAt(index) == '#') {
+            color(attributed, index, length, CODE_CONTROL);
+            return;
+        }
+        while (index < length) {
+            char character = text.charAt(index);
+            char next = index + 1 < length ? text.charAt(index + 1) : 0;
+            char previous = index > 0 ? text.charAt(index - 1) : ' ';
+            if (character == '/' && next == '/'
+                || character == '-' && next == '-' && Character.isWhitespace(previous)) {
+                color(attributed, index, length, CODE_COMMENT);
+                return;
+            }
+            if (character == '"' || character == '\'' && !Character.isLetterOrDigit(previous)) {
+                int end = index + 1;
+                while (end < length && text.charAt(end) != character) {
+                    end += text.charAt(end) == '\\' ? 2 : 1;
+                }
+                end = Math.min(length, end + 1);
+                color(attributed, previous == '$' ? index - 1 : index, end, CODE_STRING);
+                index = end;
+                continue;
+            }
+            if (Character.isDigit(character) && !Character.isLetterOrDigit(previous) && previous != '_') {
+                int end = index;
+                while (end < length && (Character.isLetterOrDigit(text.charAt(end)) || text.charAt(end) == '.')) {
+                    end++;
+                }
+                color(attributed, index, end, CODE_NUMBER);
+                index = end;
+                continue;
+            }
+            if (Character.isLetter(character) || character == '_') {
+                int end = index;
+                while (end < length && (Character.isLetterOrDigit(text.charAt(end)) || text.charAt(end) == '_')) {
+                    end++;
+                }
+                String word = text.substring(index, end);
+                int after = end;
+                while (after < length && text.charAt(after) == ' ') {
+                    after++;
+                }
+                Color wordColor = word.length() >= 3 && word.chars().allMatch(letter -> letter == '_') ? CODE_BLANK
+                    : CONTROL.contains(word) ? CODE_CONTROL
+                    : KEYWORDS.contains(word) ? CODE_KEYWORD
+                    : after < length && text.charAt(after) == '(' ? CODE_FUNCTION
+                    : Character.isUpperCase(character) ? CODE_TYPE : null;
+                if (wordColor != null) {
+                    color(attributed, index, end, wordColor);
+                }
+                index = end;
+                continue;
+            }
+            index++;
+        }
+    }
+
+    private static void color(AttributedString attributed, int from, int to, Color color) {
+        if (from < to) {
+            attributed.addAttribute(TextAttribute.FOREGROUND, color, from, to);
+        }
     }
 
     private static boolean needsFallback(Font font) {

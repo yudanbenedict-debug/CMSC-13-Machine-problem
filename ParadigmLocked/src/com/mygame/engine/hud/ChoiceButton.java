@@ -16,6 +16,7 @@ public class ChoiceButton {
     private boolean selected;
     private boolean enabled = true;
     private boolean nullified;
+    private boolean code;
     private Result result = Result.NONE;
 
     public ChoiceButton(int x, int y, int width, int height, String label,
@@ -27,7 +28,7 @@ public class ChoiceButton {
     }
 
     public void draw(Graphics2D g) {
-        UiRenderer.drawChoice(g, label, text, bounds, hover.isHovered(), selected, nullified, result);
+        UiRenderer.drawChoice(g, label, text, bounds, hover.isHovered(), selected, nullified, result, code);
     }
 
     public void updateHover(Point logicalPoint) {
@@ -65,6 +66,14 @@ public class ChoiceButton {
         }
     }
 
+
+    public void setCode(boolean code) {
+        this.code = code;
+    }
+
+    public boolean isCode() {
+        return code;
+    }
 
     public void setResult(Result result) {
         this.result = result;
