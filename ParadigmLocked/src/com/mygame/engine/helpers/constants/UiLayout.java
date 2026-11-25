@@ -63,7 +63,7 @@ public final class UiLayout {
     public static final int QUESTION_Y = 130;
     public static final int QUESTION_WIDTH = 800;
     public static final int QUESTION_HEIGHT = 250;
-    public static final int QUESTION_AREA_Y = 115;
+    public static final int QUESTION_AREA_Y = 130;
     public static final int STATUS_MESSAGE_Y = 404;
     public static final int PANEL_X = 400;
     public static final int PANEL_Y = 415;
